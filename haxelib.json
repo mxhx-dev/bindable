@@ -1,0 +1,14 @@
+{
+  "name": "feathersui-binding",
+  "url": "https://feathersui.com/",
+  "license": "MIT",
+  "tags": ["openfl", "feathersui"],
+  "description": "Data binding for Feathers UI components",
+  "version": "1.0.0-alpha.1",
+  "classPath": "src",
+  "dependencies": {
+    "openfl": ""
+  },
+  "contributors": ["bowlerhat"],
+  "releasenote": "Initial release"
+}
