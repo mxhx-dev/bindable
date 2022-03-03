@@ -18,19 +18,26 @@ import haxe.macro.Type.ClassField;
 
 class DataBinding {
 	#if macro
-	private static final SIMPLE_ASSIGNMENT_IDENTIFIERS = ["null", "false", "true"];
+	private static final SIMPLE_ASSIGNMENT_IDENTIFIERS = ["null", "false", "true", "this"];
 
-	private static function createAssignment(source:Expr, destination:Expr):Expr {
+	private static function createSourceExpr(source:Expr, destination:Expr):Expr {
 		var destType = Context.typeof(destination);
 		switch (destType) {
 			case TInst(t, params):
 				var classType = t.get();
 				if (classType.name == "String" && classType.pack.length == 0) {
-					return macro $destination = Std.string($source);
+					// special case: if destination type is string, and the
+					// source type is not, auto convert the source to a string
+					return macro Std.string($source);
 				}
 			default:
 		}
-		return macro $destination = $source;
+		return macro $source;
+	}
+
+	private static function createAssignment(source:Expr, destination:Expr):Expr {
+		var sourceExpr = createSourceExpr(source, destination);
+		return macro $destination = $sourceExpr;
 	}
 
 	private static function isDisplayObject(classType:ClassType):Bool {
@@ -168,15 +175,9 @@ class DataBinding {
 				}
 			}
 		}
-		var addListener:Expr = macro {};
-		var removeListener:Expr = macro {};
-		if (sourceEventName != null) {
-			addListener = macro $sourceBaseExpr.addEventListener($v{sourceEventName}, bindingHandler, false, 100, true);
-			removeListener = macro $sourceBaseExpr.removeEventListener($v{sourceEventName}, bindingHandler);
-		} else if (!sourceIsFinal) {
+		if (sourceEventName == null && !sourceIsFinal) {
 			Context.warning('Data binding will not be able to detect assignments to $sourceFieldName', source.pos);
 		}
-		var assignment = createAssignment(source, destination);
 
 		var hasDocument = document != null;
 		if (hasDocument) {
@@ -220,31 +221,29 @@ class DataBinding {
 			}
 		}
 
+		var sourceExpr = createSourceExpr(source, destination);
+		var watcherParentObject = sourceBaseExpr;
+		if (watcherParentObject == null) {
+			watcherParentObject = source;
+		}
 		return macro {
 			(function():Void {
+				var watcher = new feathers.binding.PropertyWatcher($v{sourceEventName}, () -> $sourceExpr, (result:Dynamic) -> $destination = result);
 				var active = false;
-				function executeBinding():Void {
-					try {
-						$assignment;
-					} catch (e:Dynamic) {}
-				}
-				function bindingHandler(event:openfl.events.Event):Void {
-					executeBinding();
-				}
 				function deactivateBinding():Void {
 					if (!active) {
 						return;
 					}
-					$removeListener;
+					watcher.updateParentObject(null);
 					active = false;
 				}
 				function activateBinding():Void {
 					if (active) {
 						return;
 					}
-					$addListener;
 					active = true;
-					executeBinding();
+					watcher.updateParentObject($watcherParentObject);
+					watcher.notifyListener();
 				}
 				$initCode;
 			})();

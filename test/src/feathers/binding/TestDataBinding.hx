@@ -40,31 +40,31 @@ class TestDataBinding extends Test {
 	public function testBindLocalFinal():Void {
 		final LOCAL_STRING_VALUE = "hi there";
 		var s = "";
-		DataBinding.bind(LOCAL_STRING_VALUE, s);
+		DataBinding.bind(LOCAL_STRING_VALUE, s, document);
 		Assert.equals(LOCAL_STRING_VALUE, s);
 	}
 
 	public function testBindUnqualifiedStaticFinal():Void {
 		var s = "";
-		DataBinding.bind(STATIC_STRING_VALUE, s);
+		DataBinding.bind(STATIC_STRING_VALUE, s, document);
 		Assert.equals(STATIC_STRING_VALUE, s);
 	}
 
 	public function testBindQualifiedStaticFinal():Void {
 		var s = "";
-		DataBinding.bind(TestDataBinding.STATIC_STRING_VALUE, s);
+		DataBinding.bind(TestDataBinding.STATIC_STRING_VALUE, s, document);
 		Assert.equals(STATIC_STRING_VALUE, s);
 	}
 
 	public function testBindUnqualifiedMemberFinal():Void {
 		var s = "";
-		DataBinding.bind(MEMBER_STRING_VALUE, s);
+		DataBinding.bind(MEMBER_STRING_VALUE, s, document);
 		Assert.equals(MEMBER_STRING_VALUE, s);
 	}
 
 	public function testBindQualifiedMemberFinal():Void {
 		var s = "";
-		DataBinding.bind(this.MEMBER_STRING_VALUE, s);
+		DataBinding.bind(this.MEMBER_STRING_VALUE, s, document);
 		Assert.equals(MEMBER_STRING_VALUE, s);
 	}
 }
