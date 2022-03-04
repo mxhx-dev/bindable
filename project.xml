@@ -2,13 +2,11 @@
 <project>
 	
 	<meta title="DataBinding" package="com.feathersui.binding" version="1.0.0" company="Bowler Hat LLC" />
-	<app main="feathers.controls.Application" path="bin" file="feathersui-binding" />
+	<app main="openfl.display.Sprite" path="bin" file="feathersui-binding" />
 	
 	<source path="src" />
 	
 	<haxelib name="openfl" />
-	<haxelib name="actuate" />
-	<haxelib name="feathersui" />
 
 	<haxeflag name="--macro" value="include('feathers.binding')"/>
 
