@@ -24,23 +24,55 @@ class PropertyWatcher {
 	private var _listener:(Dynamic) -> Void;
 	private var _changeEvent:String;
 	private var _parentObject:Dynamic;
+	private var _parentWatcher:PropertyWatcher;
+	private var _children:Array<PropertyWatcher>;
 
 	public function updateParentObject(object:Dynamic):Void {
 		removeChangeEventListener();
+		_parentWatcher = null;
 		_parentObject = object;
 		addChangeEventListener();
 		updateValue();
 	}
 
+	public function updateParentWatcher(watcher:PropertyWatcher):Void {
+		removeChangeEventListener();
+		_parentWatcher = watcher;
+		_parentObject = null;
+		if (_parentWatcher != null) {
+			_parentObject = _parentWatcher.value;
+		}
+		addChangeEventListener();
+		updateValue();
+	}
+
 	public function notifyListener():Void {
+		if (_listener == null) {
+			return;
+		}
 		_listener(value);
 	}
 
-	private function addChangeEventListener():Void {
-		if (_parentObject == null) {
+	public function addChild(child:PropertyWatcher):Void {
+		if (_children == null) {
+			_children = [];
+		}
+		_children.push(child);
+		child.updateParentWatcher(this);
+	}
+
+	public function removeChildren():Void {
+		if (_children == null) {
 			return;
 		}
-		if (!(_parentObject is IEventDispatcher)) {
+		for (child in _children) {
+			child.updateParentWatcher(null);
+		}
+		_children = null;
+	}
+
+	private function addChangeEventListener():Void {
+		if (_changeEvent == null || _parentObject == null || !(_parentObject is IEventDispatcher)) {
 			return;
 		}
 		var parentDispatcher = (_parentObject : IEventDispatcher);
@@ -48,10 +80,7 @@ class PropertyWatcher {
 	}
 
 	private function removeChangeEventListener():Void {
-		if (_parentObject == null) {
-			return;
-		}
-		if (!(_parentObject is IEventDispatcher)) {
+		if (_changeEvent == null || _parentObject == null || !(_parentObject is IEventDispatcher)) {
 			return;
 		}
 		var parentDispatcher = (_parentObject : IEventDispatcher);
@@ -59,9 +88,24 @@ class PropertyWatcher {
 	}
 
 	private function updateValue():Void {
-		try {
-			value = _propertyGetter();
-		} catch (e:Dynamic) {}
+		if (_parentObject == null) {
+			value = null;
+		} else {
+			try {
+				value = _propertyGetter();
+			} catch (e:Dynamic) {}
+		}
+		updateChildren();
+	}
+
+	private function updateChildren():Void {
+		if (_children == null) {
+			return;
+		}
+
+		for (child in _children) {
+			child.updateParentWatcher(this);
+		}
 	}
 
 	private function propertyWatcher_changeHandler(event:Event):Void {

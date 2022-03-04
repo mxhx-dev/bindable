@@ -16,6 +16,7 @@ class TestMain extends Sprite {
 
 		var runner = new Runner();
 		runner.addCase(new feathers.binding.TestDataBinding());
+		runner.addCase(new feathers.binding.TestPropertyWatcher());
 
 		// a report prints the final results after all tests have run
 		Report.create(runner);

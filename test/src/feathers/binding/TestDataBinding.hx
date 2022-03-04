@@ -40,6 +40,8 @@ class TestDataBinding extends Test {
 	public function testBindLocalFinal():Void {
 		final LOCAL_STRING_VALUE = "hi there";
 		var s = "";
+		// a compiler warning is expected because there doesn't seem to be
+		// a way to detect that a local var is final or not
 		DataBinding.bind(LOCAL_STRING_VALUE, s, document);
 		Assert.equals(LOCAL_STRING_VALUE, s);
 	}
