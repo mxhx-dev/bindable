@@ -8,8 +8,8 @@
 
 package feathers.binding;
 
-import feathers.controls.LayoutGroup;
 import openfl.Lib;
+import openfl.display.Sprite;
 import utest.Assert;
 import utest.Test;
 
@@ -18,14 +18,14 @@ class TestDataBinding extends Test {
 
 	private final MEMBER_STRING_VALUE = "member";
 
-	private var document:LayoutGroup;
+	private var document:Sprite;
 
 	public function new() {
 		super();
 	}
 
 	public function setup():Void {
-		document = new LayoutGroup();
+		document = new Sprite();
 		Lib.current.addChild(document);
 	}
 

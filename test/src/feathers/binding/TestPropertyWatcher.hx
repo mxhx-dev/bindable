@@ -8,15 +8,15 @@
 
 package feathers.binding;
 
-import openfl.events.EventDispatcher;
-import openfl.events.Event;
-import feathers.controls.LayoutGroup;
 import openfl.Lib;
+import openfl.display.Sprite;
+import openfl.events.Event;
+import openfl.events.EventDispatcher;
 import utest.Assert;
 import utest.Test;
 
 class TestPropertyWatcher extends Test {
-	private var document:LayoutGroup;
+	private var document:Sprite;
 	private var watcher:PropertyWatcher;
 
 	public function new() {
@@ -24,7 +24,7 @@ class TestPropertyWatcher extends Test {
 	}
 
 	public function setup():Void {
-		document = new LayoutGroup();
+		document = new Sprite();
 		Lib.current.addChild(document);
 	}
 
