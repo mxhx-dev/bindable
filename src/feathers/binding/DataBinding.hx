@@ -8,6 +8,7 @@
 
 package feathers.binding;
 
+import haxe.macro.Type.BaseType;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -215,6 +216,16 @@ class DataBinding {
 			var isValidDocument = false;
 			var docType = Context.typeof(document);
 			switch (docType) {
+				case TType(t, params):
+					var docTypeType = t.get();
+					switch (docTypeType.type) {
+						case TInst(t, params):
+							var docClassType = t.get();
+							if (isDisplayObject(docClassType)) {
+								isValidDocument = true;
+							}
+						default:
+					}
 				case TInst(t, params):
 					var docClassType = t.get();
 					if (isDisplayObject(docClassType)) {

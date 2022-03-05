@@ -71,10 +71,7 @@ class TestPropertyWatcher extends Test {
 		var bindToMe:String = null;
 		var instance = new ClassWithBindableProperty();
 		instance.bindableProp = firstValue;
-		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableProp, result -> {
-			trace("result: " + result);
-			bindToMe = result;
-		});
+		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableProp, result -> bindToMe = result);
 		// binding should not propagation until after parent object is updated
 		Assert.isNull(bindToMe);
 		watcher.updateParentObject(instance);
