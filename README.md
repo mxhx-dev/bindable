@@ -2,6 +2,11 @@
 
 A data binding library for [Feathers UI](https://feathersui.com/).
 
+## Minimum Requirements
+
+- Haxe 4.0
+- OpenFL 8.9.7
+
 ## Installation
 
 This library is not yet available on Haxelib, so you'll need to install it from Github.
