@@ -9,13 +9,30 @@ on:
       - master
 
 jobs:
+  test-hashlink:
+    strategy:
+      matrix:
+        haxe-version: [4.2.3]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ matrix.haxe-version }}
+      - name: Set up Haxelib dependencies
+        run: |
+          haxelib install lime --quiet
+          haxelib install openfl --quiet
+          haxelib install utest --quiet
+          haxelib dev feathersui-binding $GITHUB_WORKSPACE
+      - name: Run Tests
+        working-directory: test
+        run: haxelib run openfl test hl
   test-neko:
     strategy:
       matrix:
         haxe-version: [4.2.3]
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: krdlab/setup-haxe@v1
@@ -30,14 +47,11 @@ jobs:
       - name: Run Tests
         working-directory: test
         run: haxelib run openfl test neko
-
   test-air:
     strategy:
       matrix:
         haxe-version: [4.2.3]
-
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: joshtynjala/setup-adobe-air-action@v1
