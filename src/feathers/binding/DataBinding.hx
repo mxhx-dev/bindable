@@ -113,6 +113,7 @@ class DataBinding {
 				createSourceItemsInternal(fieldExpr, result);
 				var item = createSourceItem(e, fieldExpr, fieldName, false);
 				result.push(item);
+			case EConst(CInt(_) | CFloat(_) | CString(_) | CRegexp(_, _)): // safe to ignore
 			case EConst(CIdent(s)):
 				var baseExpr:Expr = null;
 				var isType = false;
@@ -141,9 +142,6 @@ class DataBinding {
 	private static function createSourceItems(source:Expr):Array<DataBindingSourceItem> {
 		var result:Array<DataBindingSourceItem> = [];
 		createSourceItemsInternal(source, result);
-		if (result.length == 0) {
-			Context.error('Cannot bind to source: ${ExprTools.toString(source)}', source.pos);
-		}
 		return result;
 	}
 
@@ -183,26 +181,8 @@ class DataBinding {
 		}
 		return item;
 	}
-	#end
 
-	macro public static function bind(source:Expr, destination:Expr, document:Expr = null):Expr {
-		// easy cases that need one simple assignment and nothing else
-		switch (source.expr) {
-			case EConst(CInt(f)):
-				return createAssignment(source, destination);
-			case EConst(CFloat(f)):
-				return createAssignment(source, destination);
-			case EConst(CString(s)):
-				return createAssignment(source, destination);
-			case EConst(CIdent(s)):
-				if (SIMPLE_ASSIGNMENT_IDENTIFIERS.indexOf(s) != -1) {
-					return createAssignment(source, destination);
-				}
-			default:
-		}
-
-		var sourceItems = createSourceItems(source);
-
+	private static function checkDocument(document:Expr):Bool {
 		var hasDocument = document != null;
 		if (hasDocument) {
 			switch (document.expr) {
@@ -236,11 +216,91 @@ class DataBinding {
 				Context.error('Document must be a subclass of openfl.display.DisplayObject', document.pos);
 			}
 		}
-		var initCode = macro {
-			activateBinding();
-		};
-		if (hasDocument) {
-			initCode = macro {
+		return hasDocument;
+	}
+
+	private static function collectBaseExprs(source:Expr):Array<Expr> {
+		var result:Array<Expr> = [];
+		var pending:Array<Expr> = [source];
+		while (pending.length > 0) {
+			var next = pending.pop();
+			switch (next.expr) {
+				case EArray(e1, e2):
+					pending.push(e1);
+					pending.push(e2);
+				case EArrayDecl(values):
+					for (value in values) {
+						pending.push(value);
+					}
+				case EBinop(op, e1, e2):
+					pending.push(e1);
+					pending.push(e2);
+				case EBlock(exprs):
+					for (expr in exprs) {
+						pending.push(expr);
+					}
+				case ECall(e, params):
+					for (param in params) {
+						pending.push(param);
+					}
+				case ECast(e, t):
+					pending.push(e);
+				case ECheckType(e, t):
+					pending.push(e);
+				case EIf(econd, eif, eelse):
+					pending.push(econd);
+					pending.push(eif);
+					pending.push(eelse);
+				case EIs(e, t):
+					pending.push(e);
+				case ENew(t, params):
+					for (param in params) {
+						pending.push(param);
+					}
+				case EObjectDecl(fields):
+					for (field in fields) {
+						pending.push(field.expr);
+					}
+				case EParenthesis(e):
+					pending.push(e);
+				case ESwitch(e, cases, edef):
+					pending.push(e);
+					for (c in cases) {
+						for (value in c.values) {
+							pending.push(value);
+						}
+					}
+				case ETernary(econd, eif, eelse):
+					pending.push(econd);
+					pending.push(eif);
+					pending.push(eelse);
+				case EUnop(op, postFix, e):
+					pending.push(e);
+				default:
+					// if the expression doesn't match any of the above,
+					// consider it to be a base expression
+					result.push(next);
+			}
+		}
+		return result;
+	}
+	#end
+
+	macro public static function bind(source:Expr, destination:Expr, document:Expr = null):Expr {
+		// handle easy cases that need one simple assignment and no events
+		switch (source.expr) {
+			case EConst(CInt(_) | CFloat(_) | CString(_) | CRegexp(_, _)):
+				return createAssignment(source, destination);
+			case EConst(CIdent(s)):
+				if (SIMPLE_ASSIGNMENT_IDENTIFIERS.indexOf(s) != -1) {
+					return createAssignment(source, destination);
+				}
+			default:
+		}
+
+		var hasDocument = checkDocument(document);
+		var initCode = if (hasDocument) {
+			macro {
 				function document_addedToStageHandler(event:openfl.events.Event):Void {
 					activateBinding();
 				}
@@ -253,63 +313,82 @@ class DataBinding {
 					activateBinding();
 				}
 			}
+		} else {
+			macro activateBinding();
 		}
 
-		var createWatcherExprs:Array<Expr> = [];
-		var watcherParentObject:Expr = null;
 		var sourceExpr = createSourceExpr(source, destination);
-		for (i in 0...sourceItems.length) {
-			var item = sourceItems[i];
-			var expr = item.expr;
-			var baseExpr = item.baseExpr;
-			var fieldName = item.fieldName;
-			var eventName = item.eventName;
-			var createWatcherExpr:Expr = null;
-			if (i == 0) {
-				watcherParentObject = baseExpr;
-				if (watcherParentObject == null) {
-					watcherParentObject = expr;
-				}
-				createWatcherExpr = macro {
-					watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, (result:Dynamic) -> $destination = $sourceExpr);
-				};
-			} else {
-				createWatcherExpr = macro {
-					watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, (result:Dynamic) -> $destination = $sourceExpr);
-					watchers[$v{i - 1}].addChild(watchers[$v{i}]);
-				};
-			}
-			createWatcherExprs.push(createWatcherExpr);
+		var callbackExpr = macro(result:Dynamic) -> $destination = $sourceExpr;
+
+		var sourceItemsSets:Array<Array<DataBindingSourceItem>> = [];
+		var baseExprs = collectBaseExprs(source);
+		for (baseExpr in baseExprs) {
+			var sourceItems = createSourceItems(baseExpr);
+			sourceItemsSets.push(sourceItems);
 		}
-		var createWatcher = macro {
-			(function() {
-				var watchers:Array<feathers.binding.PropertyWatcher> = [];
-				$b{createWatcherExprs};
-				return watchers[0];
-			})();
-		};
-		return macro {
-			(function():Void {
-				var watcher = $createWatcher;
-				var active = false;
-				function deactivateBinding():Void {
-					if (!active) {
-						return;
+
+		var createBindingExprs:Array<Expr> = [];
+		for (sourceItems in sourceItemsSets) {
+			var createWatcherExprs:Array<Expr> = [];
+			var watcherParentObject:Expr = macro null;
+			for (i in 0...sourceItems.length) {
+				var item = sourceItems[i];
+				var expr = item.expr;
+				var baseExpr = item.baseExpr;
+				var fieldName = item.fieldName;
+				var eventName = item.eventName;
+				var createWatcherExpr:Expr = null;
+				if (i == 0) {
+					watcherParentObject = baseExpr;
+					if (watcherParentObject == null) {
+						watcherParentObject = expr;
 					}
-					watcher.updateParentObject(null);
-					active = false;
+					createWatcherExpr = macro {
+						watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+					};
+				} else {
+					createWatcherExpr = macro {
+						watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+						watchers[$v{i - 1}].addChild(watchers[$v{i}]);
+					};
 				}
-				function activateBinding():Void {
-					if (active) {
-						return;
+				createWatcherExprs.push(createWatcherExpr);
+			}
+			if (createWatcherExprs.length == 0) {
+				return createAssignment(source, destination);
+			}
+			var createWatcher = macro {
+				(function() {
+					var watchers:Array<feathers.binding.PropertyWatcher> = [];
+					$b{createWatcherExprs};
+					return watchers[0];
+				})();
+			};
+			var createBinding = macro {
+				(function():Void {
+					var watcher = $createWatcher;
+					var active = false;
+					function deactivateBinding():Void {
+						if (!active) {
+							return;
+						}
+						watcher.updateParentObject(null);
+						active = false;
 					}
-					active = true;
-					watcher.updateParentObject($watcherParentObject);
-					watcher.notifyListener();
-				}
-				$initCode;
-			})();
-		};
+					function activateBinding():Void {
+						if (active) {
+							return;
+						}
+						active = true;
+						watcher.updateParentObject($watcherParentObject);
+						watcher.notifyListener();
+					}
+					$initCode;
+				})();
+			};
+			createBindingExprs.push(createBinding);
+		}
+		return macro $b{createBindingExprs};
 	}
 }
 
