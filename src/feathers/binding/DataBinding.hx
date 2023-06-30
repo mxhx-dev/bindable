@@ -8,7 +8,6 @@
 
 package feathers.binding;
 
-import haxe.macro.Type.BaseType;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
