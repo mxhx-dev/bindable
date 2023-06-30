@@ -251,8 +251,10 @@ class DataBinding {
 					pending.push(econd);
 					pending.push(eif);
 					pending.push(eelse);
+				#if (haxe_ver >= 4.1)
 				case EIs(e, t):
 					pending.push(e);
+				#end
 				case ENew(t, params):
 					for (param in params) {
 						pending.push(param);
