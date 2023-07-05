@@ -286,18 +286,75 @@ class DataBinding {
 		}
 		return result;
 	}
+
+	// handle easy cases that need one simple assignment and no events
+	private static function createSimpleAssignmentExpr(source:Expr, destination:Expr):Expr {
+		var simple = false;
+		switch (source.expr) {
+			case EConst(CInt(_) | CFloat(_) | CString(_) | CRegexp(_, _)):
+				// literals never change values
+				simple = true;
+			case EConst(CIdent(s)):
+				if (SIMPLE_ASSIGNMENT_IDENTIFIERS.indexOf(s) != -1) {
+					// certain identifiers will never change values
+					simple = true;
+				} else {
+					if (!Context.getLocalTVars().exists(s)) {
+						var baseExpr:Expr = null;
+						var localClass = Context.getLocalClass();
+						if (localClass != null) {
+							var classType = localClass.get();
+							if (Lambda.exists(classType.statics.get(), field -> field.name == s && field.isFinal)) {
+								// an unqualified final static
+								simple = true;
+							} else if (Lambda.exists(classType.fields.get(), field -> field.name == s && field.isFinal)) {
+								// an unqualified final field
+								simple = true;
+							}
+						}
+					}
+				}
+			case EField(fieldExpr, fieldName):
+				switch (fieldExpr.expr) {
+					case EConst(CIdent("this")):
+						var localClass = Context.getLocalClass();
+						if (localClass != null) {
+							var classType = localClass.get();
+							if (Lambda.exists(classType.fields.get(), field -> field.name == fieldName && field.isFinal)) {
+								// a this-qualified final field
+								simple = true;
+							}
+						}
+					default:
+						var type = Context.typeof(fieldExpr);
+						switch (type) {
+							case TType(t, params):
+								var defType = t.get();
+								switch (defType.type) {
+									case TAnonymous(a):
+										var anonType = a.get();
+										if (Lambda.exists(anonType.fields, field -> field.name == fieldName && field.isFinal)) {
+											// a class-qualified final static
+											simple = true;
+										}
+									default:
+								}
+							default:
+						}
+				}
+			default:
+		}
+		if (simple) {
+			return createAssignment(source, destination);
+		}
+		return null;
+	}
 	#end
 
 	macro public static function bind(source:Expr, destination:Expr, document:Expr = null):Expr {
-		// handle easy cases that need one simple assignment and no events
-		switch (source.expr) {
-			case EConst(CInt(_) | CFloat(_) | CString(_) | CRegexp(_, _)):
-				return createAssignment(source, destination);
-			case EConst(CIdent(s)):
-				if (SIMPLE_ASSIGNMENT_IDENTIFIERS.indexOf(s) != -1) {
-					return createAssignment(source, destination);
-				}
-			default:
+		var simpleExpr = createSimpleAssignmentExpr(source, destination);
+		if (simpleExpr != null) {
+			return simpleExpr;
 		}
 
 		var sourceExpr = createSourceExpr(source, destination);
