@@ -300,25 +300,6 @@ class DataBinding {
 			default:
 		}
 
-		var hasDocument = checkDocument(document);
-		var initCode = if (hasDocument) {
-			macro {
-				function document_addedToStageHandler(event:openfl.events.Event):Void {
-					activateBinding();
-				}
-				function document_removedFromStageHandler(event:openfl.events.Event):Void {
-					deactivateBinding();
-				}
-				$document.addEventListener(openfl.events.Event.ADDED_TO_STAGE, document_addedToStageHandler, false, 0, true);
-				$document.addEventListener(openfl.events.Event.REMOVED_FROM_STAGE, document_removedFromStageHandler, false, 0, true);
-				if ($document.stage != null) {
-					activateBinding();
-				}
-			}
-		} else {
-			macro activateBinding();
-		}
-
 		var sourceExpr = createSourceExpr(source, destination);
 		var callbackExpr = macro(result:Dynamic) -> $destination = $sourceExpr;
 
@@ -359,38 +340,49 @@ class DataBinding {
 			if (createWatcherExprs.length == 0) {
 				return createAssignment(source, destination);
 			}
-			var createWatcher = macro {
-				(function() {
+			var createBinding = macro {
+				bindings.push({
 					var watchers:Array<feathers.binding.PropertyWatcher> = [];
 					$b{createWatcherExprs};
-					return watchers[0];
-				})();
-			};
-			var createBinding = macro {
-				(function():Void {
-					var watcher = $createWatcher;
-					var active = false;
-					function deactivateBinding():Void {
-						if (!active) {
-							return;
-						}
-						watcher.updateParentObject(null);
-						active = false;
-					}
-					function activateBinding():Void {
-						if (active) {
-							return;
-						}
-						active = true;
-						watcher.updateParentObject($watcherParentObject);
-						watcher.notifyListener();
-					}
-					$initCode;
-				})();
+					new feathers.binding.PropertyWatcherBinding(watchers, $watcherParentObject);
+				});
 			};
 			createBindingExprs.push(createBinding);
 		}
-		return macro $b{createBindingExprs};
+
+		var hasDocument = checkDocument(document);
+		var initCode = if (hasDocument) {
+			macro {
+				function document_addedToStageHandler(event:openfl.events.Event):Void {
+					activateBindings();
+				}
+				function document_removedFromStageHandler(event:openfl.events.Event):Void {
+					deactivateBindings();
+				}
+				$document.addEventListener(openfl.events.Event.ADDED_TO_STAGE, document_addedToStageHandler, false, 0, true);
+				$document.addEventListener(openfl.events.Event.REMOVED_FROM_STAGE, document_removedFromStageHandler, false, 0, true);
+				if ($document.stage != null) {
+					activateBindings();
+				}
+			}
+		} else {
+			macro activateBindings();
+		}
+		return macro {
+			var bindings:Array<feathers.binding.PropertyWatcherBinding> = [];
+			$b{createBindingExprs};
+			function activateBindings():Void {
+				for (binding in bindings) {
+					binding.activate();
+				}
+			}
+			function deactivateBindings():Void {
+				for (binding in bindings) {
+					binding.deactivate();
+				}
+			}
+			$initCode;
+		}
 	}
 }
 
