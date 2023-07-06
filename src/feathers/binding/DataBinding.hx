@@ -432,6 +432,7 @@ class DataBinding {
 				for (binding in bindings) {
 					binding.activate();
 				}
+				$destination = $source;
 			}
 			function deactivateBindings():Void {
 				for (binding in bindings) {

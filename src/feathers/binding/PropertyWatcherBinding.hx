@@ -19,7 +19,6 @@ class PropertyWatcherBinding {
 		}
 		active = true;
 		_rootWatcher.updateParentObject(_parentObject);
-		_rootWatcher.notifyListener();
 	}
 
 	public function deactivate():Void {
