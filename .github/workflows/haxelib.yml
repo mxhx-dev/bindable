@@ -18,6 +18,7 @@ jobs:
           path: |
             src/
             haxelib.json
+            include.xml
             README.md
             LICENSE
             CHANGELOG.md
