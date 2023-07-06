@@ -1,4 +1,4 @@
-package feathers.binding.macros;
+package feathers.binding.openfl;
 
 #if macro
 import haxe.macro.Context;

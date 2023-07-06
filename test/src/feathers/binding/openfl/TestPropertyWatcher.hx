@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding;
+package feathers.binding.openfl;
 
 import openfl.Lib;
 import openfl.display.Sprite;

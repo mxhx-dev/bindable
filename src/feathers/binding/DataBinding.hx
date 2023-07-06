@@ -322,11 +322,11 @@ class DataBinding {
 						watcherParentObject = expr;
 					}
 					createWatcherExpr = macro {
-						watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+						watchers[$v{i}] = new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
 					};
 				} else {
 					createWatcherExpr = macro {
-						watchers[$v{i}] = new feathers.binding.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+						watchers[$v{i}] = new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
 						watchers[$v{i - 1}].addChild(watchers[$v{i}]);
 					};
 				}
