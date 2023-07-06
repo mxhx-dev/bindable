@@ -20,26 +20,6 @@ class DataBinding {
 	#if macro
 	private static final SIMPLE_ASSIGNMENT_IDENTIFIERS = ["null", "false", "true", "this"];
 
-	private static function createSourceExpr(source:Expr, destination:Expr):Expr {
-		var destType = Context.typeof(destination);
-		switch (destType) {
-			case TInst(t, params):
-				var classType = t.get();
-				if (classType.name == "String" && classType.pack.length == 0) {
-					// special case: if destination type is string, and the
-					// source type is not, auto convert the source to a string
-					return macro Std.string($source);
-				}
-			default:
-		}
-		return macro $source;
-	}
-
-	private static function createAssignment(source:Expr, destination:Expr):Expr {
-		var sourceExpr = createSourceExpr(source, destination);
-		return macro $destination = $sourceExpr;
-	}
-
 	private static function isDisplayObject(classType:ClassType):Bool {
 		if (classType == null) {
 			return false;
@@ -346,7 +326,7 @@ class DataBinding {
 			default:
 		}
 		if (simple) {
-			return createAssignment(source, destination);
+			return macro $destination = $source;
 		}
 		return null;
 	}
@@ -358,8 +338,9 @@ class DataBinding {
 			return simpleExpr;
 		}
 
-		var sourceExpr = createSourceExpr(source, destination);
-		var callbackExpr = macro(result:Dynamic) -> $destination = $sourceExpr;
+		var callbackExpr = macro function(result:Dynamic):Void {
+			$destination = $source;
+		}
 
 		var sourceItemsSets:Array<Array<DataBindingSourceItem>> = [];
 		var baseExprs = collectBaseExprs(source);
@@ -396,7 +377,8 @@ class DataBinding {
 				createWatcherExprs.push(createWatcherExpr);
 			}
 			if (createWatcherExprs.length == 0) {
-				return createAssignment(source, destination);
+				// simple assignment
+				return macro $destination = $source;
 			}
 			var createBinding = macro {
 				bindings.push({
