@@ -20,26 +20,6 @@ class DataBinding {
 	#if macro
 	private static final SIMPLE_ASSIGNMENT_IDENTIFIERS = ["null", "false", "true", "this"];
 
-	private static function isDisplayObject(classType:ClassType):Bool {
-		if (classType == null) {
-			return false;
-		}
-		if (classType.name == "DisplayObject") {
-			var pack = classType.pack.join(".");
-			if (pack == "openfl.display") {
-				return true;
-			}
-			if (pack == "flash.display") {
-				return true;
-			}
-		}
-		if (classType.superClass != null) {
-			var superClass = classType.superClass.t.get();
-			return isDisplayObject(superClass);
-		}
-		return false;
-	}
-
 	private static function getField(type:haxe.macro.Type, fieldName:String):ClassField {
 		switch (type) {
 			case TInst(t, params):
@@ -160,43 +140,6 @@ class DataBinding {
 			Context.warning('Data binding will not be able to detect assignments to ${fieldName}', pos);
 		}
 		return item;
-	}
-
-	private static function checkDocument(document:Expr):Bool {
-		var hasDocument = document != null;
-		if (hasDocument) {
-			switch (document.expr) {
-				case EConst(CIdent(s)):
-					hasDocument = s != "null"; // weird
-				default:
-			}
-		}
-		if (hasDocument) {
-			var isValidDocument = false;
-			var docType = Context.typeof(document);
-			switch (docType) {
-				case TType(t, params):
-					var docTypeType = t.get();
-					switch (docTypeType.type) {
-						case TInst(t, params):
-							var docClassType = t.get();
-							if (isDisplayObject(docClassType)) {
-								isValidDocument = true;
-							}
-						default:
-					}
-				case TInst(t, params):
-					var docClassType = t.get();
-					if (isDisplayObject(docClassType)) {
-						isValidDocument = true;
-					}
-				default:
-			}
-			if (!isValidDocument) {
-				Context.error('Document must be a subclass of openfl.display.DisplayObject', document.pos);
-			}
-		}
-		return hasDocument;
 	}
 
 	private static function collectBaseExprs(source:Expr):Array<Expr> {
@@ -330,6 +273,19 @@ class DataBinding {
 		}
 		return null;
 	}
+
+	private static var bindingsActivationCallback:(Expr, Expr, Expr) -> Expr = defaultBindingsActivationCallback;
+
+	private static function defaultBindingsActivationCallback(document:Expr, activate:Expr, deactivate:Expr):Expr {
+		return activate;
+	}
+
+	/**
+		Allows macros to customize the activation of bindings.
+	**/
+	public static function setBindingsActivationCallback(callback:(Expr, Expr, Expr) -> Expr):Void {
+		bindingsActivationCallback = callback != null ? callback : defaultBindingsActivationCallback;
+	}
 	#end
 
 	macro public static function bind(source:Expr, destination:Expr, document:Expr = null):Expr {
@@ -390,24 +346,7 @@ class DataBinding {
 			createBindingExprs.push(createBinding);
 		}
 
-		var hasDocument = checkDocument(document);
-		var initCode = if (hasDocument) {
-			macro {
-				function document_addedToStageHandler(event:openfl.events.Event):Void {
-					activateBindings();
-				}
-				function document_removedFromStageHandler(event:openfl.events.Event):Void {
-					deactivateBindings();
-				}
-				$document.addEventListener(openfl.events.Event.ADDED_TO_STAGE, document_addedToStageHandler, false, 0, true);
-				$document.addEventListener(openfl.events.Event.REMOVED_FROM_STAGE, document_removedFromStageHandler, false, 0, true);
-				if ($document.stage != null) {
-					activateBindings();
-				}
-			}
-		} else {
-			macro activateBindings();
-		}
+		var activationCode = bindingsActivationCallback(document, macro activateBindings(), macro deactivateBindings());
 		return macro {
 			var bindings:Array<feathers.binding.PropertyWatcherBinding> = [];
 			$b{createBindingExprs};
@@ -422,7 +361,7 @@ class DataBinding {
 					binding.deactivate();
 				}
 			}
-			$initCode;
+			$activationCode;
 		}
 	}
 }

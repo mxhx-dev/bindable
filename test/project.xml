@@ -9,5 +9,7 @@
 	<haxelib name="openfl"/>
 	<haxelib name="utest"/>
 
+	<haxeflag name="--macro feathers.binding.macros.OpenFLBindingMacro.init()"/>
+
 	<template path="templates" if="html5"/>
 </project>
