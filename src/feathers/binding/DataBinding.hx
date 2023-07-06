@@ -13,7 +13,6 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.ExprTools;
 import haxe.macro.Type.ClassField;
-import haxe.macro.Type.ClassType;
 #end
 
 class DataBinding {
@@ -280,11 +279,28 @@ class DataBinding {
 		return activate;
 	}
 
+	private static var createWatcherCallback:(String, Expr, Expr) -> Expr = defaultCreateWatcherCallback;
+
+	private static function defaultCreateWatcherCallback(eventName:String, propertyExpr:Expr, destValueListener:Expr):Expr {
+		return macro null;
+	}
+
 	/**
 		Allows macros to customize the activation of bindings.
+
+		Note: This macro API is considered unstable and may change in future versions.
 	**/
 	public static function setBindingsActivationCallback(callback:(Expr, Expr, Expr) -> Expr):Void {
 		bindingsActivationCallback = callback != null ? callback : defaultBindingsActivationCallback;
+	}
+
+	/**
+		Allows macros to customize the creation of IPropertyWatcher objects.
+
+		Note: This macro API is considered unstable and may change in future versions.
+	**/
+	public static function setCreatePropertyWatcherCallback(callback:(String, Expr, Expr) -> Expr):Void {
+		createWatcherCallback = callback != null ? callback : defaultCreateWatcherCallback;
 	}
 	#end
 
@@ -294,7 +310,7 @@ class DataBinding {
 			return simpleExpr;
 		}
 
-		var callbackExpr = macro function(result:Dynamic):Void {
+		var destAssignmentExpr = macro function(result:Dynamic):Void {
 			$destination = $source;
 		}
 
@@ -307,7 +323,7 @@ class DataBinding {
 
 		var createBindingExprs:Array<Expr> = [];
 		for (sourceItems in sourceItemsSets) {
-			var createWatcherExprs:Array<Expr> = [];
+			var assignWatcherExprs:Array<Expr> = [];
 			var watcherParentObject:Expr = macro null;
 			for (i in 0...sourceItems.length) {
 				var item = sourceItems[i];
@@ -315,31 +331,32 @@ class DataBinding {
 				var baseExpr = item.baseExpr;
 				var fieldName = item.fieldName;
 				var eventName = item.eventName;
-				var createWatcherExpr:Expr = null;
+				var assignWatcherExpr:Expr = null;
+				var createWatcherExpr = createWatcherCallback(eventName, expr, destAssignmentExpr);
 				if (i == 0) {
 					watcherParentObject = baseExpr;
 					if (watcherParentObject == null) {
 						watcherParentObject = expr;
 					}
-					createWatcherExpr = macro {
-						watchers[$v{i}] = new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+					assignWatcherExpr = macro {
+						watchers[$v{i}] = $createWatcherExpr;
 					};
 				} else {
-					createWatcherExpr = macro {
-						watchers[$v{i}] = new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $expr, $callbackExpr);
+					assignWatcherExpr = macro {
+						watchers[$v{i}] = $createWatcherExpr;
 						watchers[$v{i - 1}].addChild(watchers[$v{i}]);
 					};
 				}
-				createWatcherExprs.push(createWatcherExpr);
+				assignWatcherExprs.push(assignWatcherExpr);
 			}
-			if (createWatcherExprs.length == 0) {
+			if (assignWatcherExprs.length == 0) {
 				// simple assignment
 				return macro $destination = $source;
 			}
 			var createBinding = macro {
 				bindings.push({
 					var watchers:Array<feathers.binding.IPropertyWatcher> = [];
-					$b{createWatcherExprs};
+					$b{assignWatcherExprs};
 					new feathers.binding.PropertyWatcherBinding(watchers, $watcherParentObject);
 				});
 			};

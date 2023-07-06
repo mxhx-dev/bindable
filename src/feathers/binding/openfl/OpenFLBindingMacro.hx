@@ -9,6 +9,7 @@ import haxe.macro.Type.ClassType;
 class OpenFLBindingMacro {
 	public static macro function init():Void {
 		DataBinding.setBindingsActivationCallback(activateOpenFLBindings);
+		DataBinding.setCreatePropertyWatcherCallback(createWatcher);
 	}
 
 	#if macro
@@ -87,6 +88,10 @@ class OpenFLBindingMacro {
 			return isDisplayObject(superClass);
 		}
 		return false;
+	}
+
+	private static function createWatcher(eventName:String, propertyExpr:Expr, destValueListener:Expr):Expr {
+		return macro new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $propertyExpr, $destValueListener);
 	}
 	#end
 }
