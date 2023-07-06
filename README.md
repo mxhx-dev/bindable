@@ -28,7 +28,7 @@ After installing the libraries above, add them to your OpenFL _project.xml_ file
 The first argument is the source of the data. The second is the destination. The final argument is a display object where the binding should be activated when it is added to the stage, and deactivated when it is removed.
 
 ```hx
-DataBinding.bind(slider.value, label.text, this);
+DataBinding.bind(Std.string(slider.value), label.text, this);
 ```
 
 ## Documentation
