@@ -11,7 +11,7 @@ package feathers.binding;
 import openfl.events.Event;
 import openfl.events.IEventDispatcher;
 
-class PropertyWatcher {
+class PropertyWatcher implements IPropertyWatcher {
 	public function new(changeEvent:String, propertyGetter:() -> Dynamic, listener:(Dynamic) -> Void) {
 		_changeEvent = changeEvent;
 		_propertyGetter = propertyGetter;
@@ -24,8 +24,8 @@ class PropertyWatcher {
 	private var _listener:(Dynamic) -> Void;
 	private var _changeEvent:String;
 	private var _parentObject:Dynamic;
-	private var _parentWatcher:PropertyWatcher;
-	private var _children:Array<PropertyWatcher>;
+	private var _parentWatcher:IPropertyWatcher;
+	private var _children:Array<IPropertyWatcher>;
 
 	public function updateParentObject(object:Dynamic):Void {
 		removeChangeEventListener();
@@ -35,7 +35,7 @@ class PropertyWatcher {
 		updateValue();
 	}
 
-	public function updateParentWatcher(watcher:PropertyWatcher):Void {
+	public function updateParentWatcher(watcher:IPropertyWatcher):Void {
 		removeChangeEventListener();
 		_parentWatcher = watcher;
 		_parentObject = null;
@@ -53,7 +53,7 @@ class PropertyWatcher {
 		_listener(value);
 	}
 
-	public function addChild(child:PropertyWatcher):Void {
+	public function addChild(child:IPropertyWatcher):Void {
 		if (_children == null) {
 			_children = [];
 		}

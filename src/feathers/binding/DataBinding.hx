@@ -338,7 +338,7 @@ class DataBinding {
 			}
 			var createBinding = macro {
 				bindings.push({
-					var watchers:Array<feathers.binding.PropertyWatcher> = [];
+					var watchers:Array<feathers.binding.IPropertyWatcher> = [];
 					$b{createWatcherExprs};
 					new feathers.binding.PropertyWatcherBinding(watchers, $watcherParentObject);
 				});
