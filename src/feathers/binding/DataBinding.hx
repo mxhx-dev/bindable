@@ -240,6 +240,7 @@ class DataBinding {
 						pending.push(expr);
 					}
 				case ECall(e, params):
+					pending.push(e);
 					for (param in params) {
 						pending.push(param);
 					}
