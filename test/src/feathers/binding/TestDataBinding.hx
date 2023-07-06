@@ -148,4 +148,22 @@ class TestDataBinding extends Test {
 		DataBinding.bind(this.memberMethodNotBindableWithArgs("one", "two"), s, document);
 		Assert.equals("onetwo", s);
 	}
+
+	public function testBindQualifiedMemberMethodWithArgsNotBindable2():Void {
+		var s = "";
+		// compiler warnings are expected because there's no :bindable meta
+		DataBinding.bind(this.memberMethodNotBindableWithArgs(memberStringNotBindable, this.memberStringNotBindable), s, document);
+		Assert.equals("memberStringNotBindablememberStringNotBindable", s);
+		memberStringNotBindable = "new value";
+		Assert.equals("memberStringNotBindablememberStringNotBindable", s);
+	}
+
+	public function testBindQualifiedMemberMethodWithArgsNotBindable3():Void {
+		var s = "";
+		// compiler warnings are expected because there's no :bindable meta
+		DataBinding.bind(this.memberMethodNotBindableWithArgs(staticStringNotBindable, TestDataBinding.staticStringNotBindable), s, document);
+		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
+		staticStringNotBindable = "new value";
+		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
+	}
 }
