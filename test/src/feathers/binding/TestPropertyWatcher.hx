@@ -124,9 +124,23 @@ class TestPropertyWatcher extends Test {
 		instance.outerBindableProp = new ClassWithBindableProperty(secondValue);
 		Assert.equals(secondValue, bindToMe);
 	}
+
+	public function testBindableMethod():Void {
+		var bindToMe:Int = -1;
+
+		var instance = new ClassWithBindableMethod();
+		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableMethod(), result -> bindToMe = result);
+		// binding should not propagation until after parent object is updated
+		Assert.equals(-1, bindToMe);
+		watcher.updateParentObject(instance);
+		watcher.notifyListener();
+		Assert.equals(1, bindToMe);
+		instance.dispatchEvent(new Event(Event.CHANGE));
+		Assert.equals(2, bindToMe);
+	}
 }
 
-class ClassWithBindableProperty extends EventDispatcher {
+private class ClassWithBindableProperty extends EventDispatcher {
 	public function new(?value:String) {
 		super();
 		bindableProp = value;
@@ -145,7 +159,7 @@ class ClassWithBindableProperty extends EventDispatcher {
 	}
 }
 
-class ClassWithNestedBindableProperty extends EventDispatcher {
+private class ClassWithNestedBindableProperty extends EventDispatcher {
 	public function new() {
 		super();
 	}
@@ -161,4 +175,18 @@ class ClassWithNestedBindableProperty extends EventDispatcher {
 		dispatchEvent(new Event(Event.CHANGE));
 		return outerBindableProp;
 	}
+}
+
+private class ClassWithBindableMethod extends EventDispatcher {
+	public function new() {
+		super();
+	}
+
+	@:bindable("change")
+	public function bindableMethod():Int {
+		count++;
+		return count;
+	}
+
+	private var count:Int = 0;
 }
