@@ -19,6 +19,39 @@ class DataBinding {
 	#if macro
 	private static final SIMPLE_ASSIGNMENT_IDENTIFIERS = ["null", "false", "true", "this"];
 
+	private static function isPure(field:ClassField, type:haxe.macro.Type):Bool {
+		if (field != null && field.meta.has(":pure")) {
+			return true;
+		}
+		switch (type) {
+			case TInst(t, params):
+				var classType = t.get();
+				return classType.meta.has(":pure");
+			case TType(t, params):
+				var defType = t.get();
+				var defTypeName = defType.name;
+				if (StringTools.startsWith(defTypeName, "Class<")) {
+					defTypeName = defTypeName.substr(6, defTypeName.length - 7);
+					var resolvedType:haxe.macro.Type = null;
+					try {
+						resolvedType = Context.getType(defTypeName);
+					} catch (e:Dynamic) {}
+					if (resolvedType != null) {
+						switch (resolvedType) {
+							case TInst(t, params):
+								var classType = t.get();
+								return classType.meta.has(":pure");
+							default:
+						}
+					}
+				}
+			case null:
+			default:
+		}
+
+		return false;
+	}
+
 	private static function getField(type:haxe.macro.Type, fieldName:String):ClassField {
 		switch (type) {
 			case TInst(t, params):
@@ -110,7 +143,8 @@ class DataBinding {
 		item.expr = source;
 		item.baseExpr = baseExpr;
 		item.fieldName = fieldName;
-		var isFinal = false;
+		var fieldIsFinal = false;
+		var fieldIsPure = false;
 		if (baseExpr != null) {
 			var baseType = try {
 				Context.typeof(baseExpr);
@@ -120,7 +154,7 @@ class DataBinding {
 			var field = getField(baseType, fieldName);
 			if (field != null) {
 				if (field.isFinal) {
-					isFinal = true;
+					fieldIsFinal = true;
 				} else if (field.meta.has(":bindable")) {
 					var bindable = field.meta.extract(":bindable")[0];
 					switch (bindable.params.length) {
@@ -135,10 +169,12 @@ class DataBinding {
 							}
 						default:
 					}
+				} else if (isPure(field, baseType)) {
+					fieldIsPure = true;
 				}
 			}
 		}
-		if (item.eventName == null && !isFinal && !skipWarning) {
+		if (item.eventName == null && !fieldIsFinal && !fieldIsPure && !skipWarning) {
 			var posInfos = Context.getPosInfos(source.pos);
 			var pos = Context.makePosition({min: posInfos.max - fieldName.length, max: posInfos.max, file: posInfos.file});
 			Context.warning('Data binding will not be able to detect assignments to ${fieldName}', pos);
