@@ -23,8 +23,8 @@ class OpenFLBindingMacro {
 				function document_removedFromStageHandler(event:openfl.events.Event):Void {
 					$deactivate;
 				}
-				$document.addEventListener(openfl.events.Event.ADDED_TO_STAGE, document_addedToStageHandler, false, 0, true);
-				$document.addEventListener(openfl.events.Event.REMOVED_FROM_STAGE, document_removedFromStageHandler, false, 0, true);
+				$document.addEventListener(openfl.events.Event.ADDED_TO_STAGE, document_addedToStageHandler);
+				$document.addEventListener(openfl.events.Event.REMOVED_FROM_STAGE, document_removedFromStageHandler);
 				if ($document.stage != null) {
 					$activate;
 				}
