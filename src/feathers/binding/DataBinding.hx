@@ -60,6 +60,7 @@ class DataBinding {
 						}
 					}
 				}
+			case null:
 			default:
 		}
 
