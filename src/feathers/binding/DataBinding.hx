@@ -112,7 +112,11 @@ class DataBinding {
 		item.fieldName = fieldName;
 		var isFinal = false;
 		if (baseExpr != null) {
-			var baseType = Context.typeof(baseExpr);
+			var baseType = try {
+				Context.typeof(baseExpr);
+			} catch (e:Dynamic) {
+				null;
+			}
 			var field = getField(baseType, fieldName);
 			if (field != null) {
 				if (field.isFinal) {
@@ -250,7 +254,11 @@ class DataBinding {
 							}
 						}
 					default:
-						var type = Context.typeof(fieldExpr);
+						var type = try {
+							Context.typeof(fieldExpr);
+						} catch (e:Dynamic) {
+							null;
+						}
 						switch (type) {
 							case TType(t, params):
 								var defType = t.get();
