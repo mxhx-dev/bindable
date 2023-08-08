@@ -26,6 +26,7 @@ class PropertyWatcher implements IPropertyWatcher {
 	private var _parentObject:Dynamic;
 	private var _parentWatcher:IPropertyWatcher;
 	private var _children:Array<IPropertyWatcher>;
+	private var _exception:Bool = false;
 
 	public function updateParentObject(object:Dynamic):Void {
 		removeChangeEventListener();
@@ -47,7 +48,7 @@ class PropertyWatcher implements IPropertyWatcher {
 	}
 
 	public function notifyListener():Void {
-		if (_listener == null) {
+		if (_listener == null || _exception) {
 			return;
 		}
 		_listener(value);
@@ -90,12 +91,15 @@ class PropertyWatcher implements IPropertyWatcher {
 	}
 
 	private function updateValue():Void {
+		_exception = false;
 		if (_parentObject == null) {
 			value = null;
 		} else {
 			try {
 				value = _propertyGetter();
-			} catch (e:Dynamic) {}
+			} catch (e:Dynamic) {
+				_exception = true;
+			}
 		}
 		updateChildren();
 	}

@@ -138,6 +138,22 @@ class TestPropertyWatcher extends Test {
 		instance.dispatchEvent(new Event(Event.CHANGE));
 		Assert.equals(2, bindToMe);
 	}
+
+	public function testMissingFieldException():Void {
+		final originalText = "original";
+		final newText = "new";
+		var bindToMe = originalText;
+		var instance = new ClassWithBindableDynamicProperty();
+		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableDynamicProp.hello, result -> bindToMe = result);
+		// binding should not propagate until after parent object is updated
+		Assert.equals(originalText, bindToMe);
+		watcher.updateParentObject(instance);
+		watcher.notifyListener();
+		// binding should not change value if exception is thrown
+		Assert.equals(originalText, bindToMe);
+		instance.bindableDynamicProp = {hello: newText};
+		Assert.equals(newText, bindToMe);
+	}
 }
 
 private class ClassWithBindableProperty extends EventDispatcher {
@@ -189,4 +205,22 @@ private class ClassWithBindableMethod extends EventDispatcher {
 	}
 
 	private var count:Int = 0;
+}
+
+private class ClassWithBindableDynamicProperty extends EventDispatcher {
+	public function new() {
+		super();
+	}
+
+	@:bindable("change")
+	public var bindableDynamicProp(default, set):Dynamic;
+
+	private function set_bindableDynamicProp(value:Dynamic):Dynamic {
+		if (bindableDynamicProp == value) {
+			return bindableDynamicProp;
+		}
+		bindableDynamicProp = value;
+		dispatchEvent(new Event(Event.CHANGE));
+		return bindableDynamicProp;
+	}
 }
