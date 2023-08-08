@@ -117,8 +117,22 @@ class DataBinding {
 						var classType = localClass.get();
 						if (Lambda.exists(classType.statics.get(), field -> field.name == s)) {
 							baseExpr = macro $i{classType.name};
-						} else if (Lambda.exists(classType.fields.get(), field -> field.name == s)) {
-							baseExpr = macro this;
+						} else {
+							var field:ClassField = null;
+							var currentType = classType;
+							while (field == null && currentType != null) {
+								field = Lambda.find(currentType.fields.get(), item -> {
+									return item.name == s;
+								});
+								if (currentType.superClass != null) {
+									currentType = currentType.superClass.t.get();
+								} else {
+									currentType = null;
+								}
+							}
+							if (field != null) {
+								baseExpr = macro this;
+							}
 						}
 					}
 					try {
@@ -271,9 +285,23 @@ class DataBinding {
 							if (Lambda.exists(classType.statics.get(), field -> field.name == s && field.isFinal)) {
 								// an unqualified final static
 								simple = true;
-							} else if (Lambda.exists(classType.fields.get(), field -> field.name == s && field.isFinal)) {
-								// an unqualified final field
-								simple = true;
+							} else {
+								var field:ClassField = null;
+								var currentType = classType;
+								while (field == null && currentType != null) {
+									field = Lambda.find(currentType.fields.get(), item -> {
+										return item.name == s;
+									});
+									if (currentType.superClass != null) {
+										currentType = currentType.superClass.t.get();
+									} else {
+										currentType = null;
+									}
+								}
+								if (field != null && field.isFinal) {
+									// an unqualified final field
+									simple = true;
+								}
 							}
 						}
 					}
@@ -284,7 +312,19 @@ class DataBinding {
 						var localClass = Context.getLocalClass();
 						if (localClass != null) {
 							var classType = localClass.get();
-							if (Lambda.exists(classType.fields.get(), field -> field.name == fieldName && field.isFinal)) {
+							var field:ClassField = null;
+							var currentType = classType;
+							while (field == null && currentType != null) {
+								field = Lambda.find(currentType.fields.get(), item -> {
+									return item.name == fieldName;
+								});
+								if (currentType.superClass != null) {
+									currentType = currentType.superClass.t.get();
+								} else {
+									currentType = null;
+								}
+							}
+							if (field != null && field.isFinal) {
 								// a this-qualified final field
 								simple = true;
 							}
