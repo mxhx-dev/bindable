@@ -76,7 +76,9 @@ class PropertyWatcher implements IPropertyWatcher {
 			return;
 		}
 		var parentDispatcher = (_parentObject : IEventDispatcher);
-		parentDispatcher.addEventListener(_changeEvent, propertyWatcher_changeHandler, false, 100, true);
+		// must not use weak listener because there may not be another strong
+		// reference to a GC root.
+		parentDispatcher.addEventListener(_changeEvent, propertyWatcher_changeHandler, false, 100);
 	}
 
 	private function removeChangeEventListener():Void {
