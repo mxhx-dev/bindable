@@ -8,6 +8,14 @@
 
 package feathers.binding.openfl;
 
+import feathers.binding.openfl.fixtures.ClassWithRegularMethod;
+import feathers.binding.openfl.fixtures.ClassWithRegularProperty;
+import feathers.binding.openfl.fixtures.ClassWithBindableDynamicProperty;
+import feathers.binding.openfl.fixtures.ClassWithBindableMethod;
+import feathers.binding.openfl.fixtures.ClassWithBindableProperty;
+import feathers.binding.openfl.fixtures.ClassWithNestedBindableProperty;
+import feathers.binding.openfl.fixtures.SubclassWithBindableMethod;
+import feathers.binding.openfl.fixtures.SubclassWithBindableProperty;
 import openfl.Lib;
 import openfl.display.Sprite;
 import openfl.events.Event;
@@ -15,22 +23,6 @@ import utest.Assert;
 import utest.Test;
 
 class TestDataBinding extends Test {
-	private static final STATIC_FINAL_STRING = "static";
-
-	private static var staticStringNotBindable:String;
-
-	private final MEMBER_FINAL_STRING = "member";
-
-	private var memberStringNotBindable:String;
-
-	private function memberMethodNotBindableNoArgs():String {
-		return "memberMethod";
-	}
-
-	private function memberMethodNotBindableWithArgs(arg1:String, arg2:String):String {
-		return arg1 + arg2;
-	}
-
 	private var document:Sprite;
 
 	public function new() {
@@ -40,8 +32,6 @@ class TestDataBinding extends Test {
 	public function setup():Void {
 		document = new Sprite();
 		Lib.current.addChild(document);
-		staticStringNotBindable = "staticStringNotBindable";
-		memberStringNotBindable = "memberStringNotBindable";
 	}
 
 	public function teardown():Void {
@@ -52,118 +42,128 @@ class TestDataBinding extends Test {
 		Assert.equals(1, Lib.current.numChildren, "Test cleanup failed to remove all children from the root");
 	}
 
-	public function testBindLocalFinal():Void {
-		final LOCAL_FINAL_STRING = "hi there";
-		var s = "";
-		// a compiler warning is expected because there doesn't seem to be
-		// a way to detect from a macro if a local var is final or not
-		DataBinding.bind(LOCAL_FINAL_STRING, s, document);
-		Assert.equals(LOCAL_FINAL_STRING, s);
+	public function testRegularProperty():Void {
+		final firstValue = "hello";
+		final secondValue = "goodbye";
+		var bindToMe:String = null;
+		var instance = new ClassWithRegularProperty();
+		instance.regularProp = firstValue;
+		DataBinding.bind(instance.regularProp, bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(firstValue, bindToMe);
+		instance.regularProp = secondValue;
+		// since :bindable is missing, nothing is detected
+		Assert.equals(firstValue, bindToMe);
 	}
 
-	public function testBindUnqualifiedStaticFinal():Void {
-		var s = "";
-		DataBinding.bind(STATIC_FINAL_STRING, s, document);
-		Assert.equals(STATIC_FINAL_STRING, s);
+	public function testRegularMethod():Void {
+		var bindToMe:Int = -1;
+		var instance = new ClassWithRegularMethod();
+		DataBinding.bind(instance.regularMethod(), bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(1, bindToMe);
+		instance.dispatchEvent(new Event(Event.CHANGE));
+		// since :bindable is missing, nothing is detected
+		Assert.equals(1, bindToMe);
 	}
 
-	public function testBindQualifiedStaticFinal():Void {
-		var s = "";
-		DataBinding.bind(TestDataBinding.STATIC_FINAL_STRING, s, document);
-		Assert.equals(STATIC_FINAL_STRING, s);
+	public function testBindableProperty():Void {
+		final firstValue = "hello";
+		final secondValue = "goodbye";
+		var bindToMe:String = null;
+		var instance = new ClassWithBindableProperty();
+		instance.bindableProp = firstValue;
+		DataBinding.bind(instance.bindableProp, bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(firstValue, bindToMe);
+		instance.bindableProp = secondValue;
+		// binding should detect :bindable meta with change event
+		Assert.equals(secondValue, bindToMe);
 	}
 
-	public function testBindUnqualifiedMemberFinal():Void {
-		var s = "";
-		DataBinding.bind(MEMBER_FINAL_STRING, s, document);
-		Assert.equals(MEMBER_FINAL_STRING, s);
+	public function testNestedBindableProperty1():Void {
+		final firstValue = "hello";
+		final secondValue = "goodbye";
+		var bindToMe:String = null;
+		var instance = new ClassWithNestedBindableProperty();
+		instance.outerBindableProp.bindableProp = firstValue;
+		DataBinding.bind(instance.outerBindableProp.bindableProp, bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(firstValue, bindToMe);
+		instance.outerBindableProp.bindableProp = secondValue;
+		// binding should detect :bindable meta with change event
+		Assert.equals(secondValue, bindToMe);
 	}
 
-	public function testBindQualifiedMemberFinal():Void {
-		var s = "";
-		DataBinding.bind(this.MEMBER_FINAL_STRING, s, document);
-		Assert.equals(MEMBER_FINAL_STRING, s);
+	public function testNestedBindableProperty2():Void {
+		final firstValue = "hello";
+		final secondValue = "goodbye";
+		var bindToMe:String = null;
+		var instance = new ClassWithNestedBindableProperty();
+		instance.outerBindableProp.bindableProp = firstValue;
+		DataBinding.bind(instance.outerBindableProp.bindableProp, bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(firstValue, bindToMe);
+		instance.outerBindableProp = new ClassWithBindableProperty(secondValue);
+		// binding should detect :bindable meta with change event
+		Assert.equals(secondValue, bindToMe);
 	}
 
-	public function testBindUnqualifiedStaticVar():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(staticStringNotBindable, s, document);
-		Assert.equals("staticStringNotBindable", s);
-		staticStringNotBindable = "new value";
-		Assert.equals("staticStringNotBindable", s);
+	public function testBindableMethod():Void {
+		var bindToMe:Int = -1;
+		var instance = new ClassWithBindableMethod();
+		DataBinding.bind(instance.bindableMethod(), bindToMe, document);
+		// binding should apply original value instantly
+		Assert.equals(1, bindToMe);
+		instance.dispatchEvent(new Event(Event.CHANGE));
+		Assert.equals(2, bindToMe);
 	}
 
-	public function testBindQualifiedstaticVar():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(TestDataBinding.staticStringNotBindable, s, document);
-		Assert.equals("staticStringNotBindable", s);
-		staticStringNotBindable = "new value";
-		Assert.equals("staticStringNotBindable", s);
+	public function testMissingFieldException1():Void {
+		final originalText = "original";
+		final newText = "new";
+		var bindToMe = originalText;
+		var instance = new ClassWithBindableDynamicProperty();
+		DataBinding.bind(instance.bindableDynamicProp.hello, bindToMe, document);
+		// binding should not change value if exception is thrown
+		Assert.equals(originalText, bindToMe);
+		instance.bindableDynamicProp = {hello: newText};
+		Assert.equals(newText, bindToMe);
 	}
 
-	public function testBindUnqualifiedMemberVar():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(memberStringNotBindable, s, document);
-		Assert.equals("memberStringNotBindable", s);
-		memberStringNotBindable = "new value";
-		Assert.equals("memberStringNotBindable", s);
+	public function testMissingFieldException2():Void {
+		final originalText = "original";
+		final newText = "new";
+		var bindToMe = originalText;
+		var instance = new ClassWithNestedBindableProperty();
+		instance.outerBindableProp = null;
+		DataBinding.bind(instance.outerBindableProp.bindableProp, bindToMe, document);
+		// binding should not change value if exception is thrown
+		Assert.equals(originalText, bindToMe);
+		instance.outerBindableProp = new ClassWithBindableProperty(newText);
+		Assert.equals(newText, bindToMe);
 	}
 
-	public function testBindQualifiedMemberVar():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(this.memberStringNotBindable, s, document);
-		Assert.equals("memberStringNotBindable", s);
-		memberStringNotBindable = "new value";
-		Assert.equals("memberStringNotBindable", s);
+	public function testSubclassBindableProperty():Void {
+		final firstValue = "hello";
+		final secondValue = "goodbye";
+		var bindToMe:String = null;
+		var instance = new SubclassWithBindableProperty();
+		instance.bindableProp = firstValue;
+		DataBinding.bind(instance.bindableProp, bindToMe, document);
+		Assert.equals(firstValue, bindToMe);
+		instance.bindableProp = secondValue;
+		// ensures that :bindable metadata is detected on superclass
+		Assert.equals(secondValue, bindToMe);
 	}
 
-	public function testBindUnqualifiedMemberMethodNoArgsNotBindable():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(memberMethodNotBindableNoArgs(), s, document);
-		Assert.equals(memberMethodNotBindableNoArgs(), s);
-	}
-
-	public function testBindQualifiedMemberMethodNoArgsNotBindable():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(this.memberMethodNotBindableNoArgs(), s, document);
-		Assert.equals(memberMethodNotBindableNoArgs(), s);
-	}
-
-	public function testBindUnqualifiedMemberMethodWithArgsNotBindable():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(memberMethodNotBindableWithArgs("one", "two"), s, document);
-		Assert.equals("onetwo", s);
-	}
-
-	public function testBindQualifiedMemberMethodWithArgsNotBindable():Void {
-		var s = "";
-		// a compiler warning is expected because there's no :bindable meta
-		DataBinding.bind(this.memberMethodNotBindableWithArgs("one", "two"), s, document);
-		Assert.equals("onetwo", s);
-	}
-
-	public function testBindQualifiedMemberMethodWithArgsNotBindable2():Void {
-		var s = "";
-		// compiler warnings are expected because there's no :bindable meta
-		DataBinding.bind(this.memberMethodNotBindableWithArgs(memberStringNotBindable, this.memberStringNotBindable), s, document);
-		Assert.equals("memberStringNotBindablememberStringNotBindable", s);
-		memberStringNotBindable = "new value";
-		Assert.equals("memberStringNotBindablememberStringNotBindable", s);
-	}
-
-	public function testBindQualifiedMemberMethodWithArgsNotBindable3():Void {
-		var s = "";
-		// compiler warnings are expected because there's no :bindable meta
-		DataBinding.bind(this.memberMethodNotBindableWithArgs(staticStringNotBindable, TestDataBinding.staticStringNotBindable), s, document);
-		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
-		staticStringNotBindable = "new value";
-		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
+	public function testSubclassBindableMethod():Void {
+		var bindToMe:Int = -1;
+		var instance = new SubclassWithBindableMethod();
+		DataBinding.bind(instance.bindableMethod(), bindToMe, document);
+		Assert.equals(1, bindToMe);
+		instance.dispatchEvent(new Event(Event.CHANGE));
+		// ensures that :bindable metadata is detected on superclass
+		Assert.equals(2, bindToMe);
 	}
 }

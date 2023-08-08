@@ -8,10 +8,13 @@
 
 package feathers.binding.openfl;
 
+import feathers.binding.openfl.fixtures.ClassWithBindableDynamicProperty;
+import feathers.binding.openfl.fixtures.ClassWithBindableMethod;
+import feathers.binding.openfl.fixtures.ClassWithBindableProperty;
+import feathers.binding.openfl.fixtures.ClassWithNestedBindableProperty;
 import openfl.Lib;
 import openfl.display.Sprite;
 import openfl.events.Event;
-import openfl.events.EventDispatcher;
 import utest.Assert;
 import utest.Test;
 
@@ -72,7 +75,7 @@ class TestPropertyWatcher extends Test {
 		var instance = new ClassWithBindableProperty();
 		instance.bindableProp = firstValue;
 		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableProp, result -> bindToMe = result);
-		// binding should not propagation until after parent object is updated
+		// binding should not propagate until after parent object is updated
 		Assert.isNull(bindToMe);
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
@@ -94,7 +97,7 @@ class TestPropertyWatcher extends Test {
 			bindToMe = instance.outerBindableProp.bindableProp;
 		});
 		watcher.addChild(watcher2);
-		// binding should not propagation until after parent object is updated
+		// binding should not propagate until after parent object is updated
 		Assert.isNull(bindToMe);
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
@@ -116,7 +119,7 @@ class TestPropertyWatcher extends Test {
 			bindToMe = instance.outerBindableProp.bindableProp;
 		});
 		watcher.addChild(watcher2);
-		// binding should not propagation until after parent object is updated
+		// binding should not propagate until after parent object is updated
 		Assert.isNull(bindToMe);
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
@@ -130,7 +133,7 @@ class TestPropertyWatcher extends Test {
 
 		var instance = new ClassWithBindableMethod();
 		watcher = new PropertyWatcher(Event.CHANGE, () -> instance.bindableMethod(), result -> bindToMe = result);
-		// binding should not propagation until after parent object is updated
+		// binding should not propagate until after parent object is updated
 		Assert.equals(-1, bindToMe);
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
@@ -153,74 +156,5 @@ class TestPropertyWatcher extends Test {
 		Assert.equals(originalText, bindToMe);
 		instance.bindableDynamicProp = {hello: newText};
 		Assert.equals(newText, bindToMe);
-	}
-}
-
-private class ClassWithBindableProperty extends EventDispatcher {
-	public function new(?value:String) {
-		super();
-		bindableProp = value;
-	}
-
-	@:bindable("change")
-	public var bindableProp(default, set):String;
-
-	private function set_bindableProp(value:String):String {
-		if (bindableProp == value) {
-			return bindableProp;
-		}
-		bindableProp = value;
-		dispatchEvent(new Event(Event.CHANGE));
-		return bindableProp;
-	}
-}
-
-private class ClassWithNestedBindableProperty extends EventDispatcher {
-	public function new() {
-		super();
-	}
-
-	@:bindable("change")
-	public var outerBindableProp(default, set):ClassWithBindableProperty = new ClassWithBindableProperty();
-
-	private function set_outerBindableProp(value:ClassWithBindableProperty):ClassWithBindableProperty {
-		if (outerBindableProp == value) {
-			return outerBindableProp;
-		}
-		outerBindableProp = value;
-		dispatchEvent(new Event(Event.CHANGE));
-		return outerBindableProp;
-	}
-}
-
-private class ClassWithBindableMethod extends EventDispatcher {
-	public function new() {
-		super();
-	}
-
-	@:bindable("change")
-	public function bindableMethod():Int {
-		count++;
-		return count;
-	}
-
-	private var count:Int = 0;
-}
-
-private class ClassWithBindableDynamicProperty extends EventDispatcher {
-	public function new() {
-		super();
-	}
-
-	@:bindable("change")
-	public var bindableDynamicProp(default, set):Dynamic;
-
-	private function set_bindableDynamicProp(value:Dynamic):Dynamic {
-		if (bindableDynamicProp == value) {
-			return bindableDynamicProp;
-		}
-		bindableDynamicProp = value;
-		dispatchEvent(new Event(Event.CHANGE));
-		return bindableDynamicProp;
 	}
 }
