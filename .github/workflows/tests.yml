@@ -27,7 +27,7 @@ jobs:
           haxelib install utest --quiet
           haxelib dev feathersui-binding ${{ github.workspace }}
       - name: Set up Node.js dependencies
-        working-directory: test
+        working-directory: test/openfl
         run: |
           npm ci
       - name: Run OpenFL Tests
