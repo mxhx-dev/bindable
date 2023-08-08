@@ -15,7 +15,7 @@ class TestMain extends Sprite {
 		super();
 
 		var runner = new Runner();
-		runner.addCase(new feathers.binding.TestDataBinding());
+		runner.addCase(new feathers.binding.openfl.TestDataBinding());
 		runner.addCase(new feathers.binding.openfl.TestPropertyWatcher());
 
 		#if (html5 && playwright)

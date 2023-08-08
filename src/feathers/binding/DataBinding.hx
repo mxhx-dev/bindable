@@ -367,7 +367,10 @@ class DataBinding {
 	private static var createWatcherCallback:(String, Expr, Expr) -> Expr = defaultCreateWatcherCallback;
 
 	private static function defaultCreateWatcherCallback(eventName:String, propertyExpr:Expr, destValueListener:Expr):Expr {
-		return macro null;
+		// ignore eventName because unconfigured library doesn't know anything
+		// about events.
+		// to configure for OpenFL, use OpenFLBindingMacro.init()
+		return macro new feathers.binding.BasicPropertyWatcher(() -> $propertyExpr, $destValueListener);
 	}
 
 	/**

@@ -30,11 +30,33 @@ jobs:
         working-directory: test
         run: |
           npm ci
-      - name: Run Tests
-        working-directory: test
+      - name: Run OpenFL Tests
+        working-directory: test/openfl
         run: |
           haxelib run openfl build html5 -final -Dplaywright
           node playwright-runner.js
+  test-basic:
+    strategy:
+      matrix:
+        haxe-version: [4.0.5]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ matrix.haxe-version }}
+      - name: Set up Haxelib dependencies
+        run: |
+          haxelib install utest --quiet
+          haxelib dev feathersui-binding $GITHUB_WORKSPACE
+      - name: Run Basic Interpreter Tests
+        working-directory: test/basic
+        run: haxe test.hxml --interp
+      - name: Run Basic Neko Tests
+        working-directory: test/basic
+        run: |
+          haxe test.hxml --neko bin/test.n
+          neko bin/test.n
   test-hashlink:
     strategy:
       matrix:
@@ -51,8 +73,8 @@ jobs:
           haxelib install openfl --quiet
           haxelib install utest --quiet
           haxelib dev feathersui-binding $GITHUB_WORKSPACE
-      - name: Run Tests
-        working-directory: test
+      - name: Run OpenFL Tests
+        working-directory: test/openfl
         run: haxelib run openfl test hl
   test-neko:
     strategy:
@@ -70,8 +92,8 @@ jobs:
           haxelib install openfl --quiet
           haxelib install utest --quiet
           haxelib dev feathersui-binding $GITHUB_WORKSPACE
-      - name: Run Tests
-        working-directory: test
+      - name: Run OpenFL Tests
+        working-directory: test/openfl
         run: haxelib run openfl test neko
   test-air:
     strategy:
@@ -94,6 +116,6 @@ jobs:
           haxelib install utest --quiet
           haxelib dev feathersui-binding ${{ github.workspace }} 
           haxelib run lime config AIR_SDK ${{ env.AIR_HOME }}
-      - name: Run Tests
-        working-directory: test
+      - name: Run OpenFL Tests
+        working-directory: test/openfl
         run: haxelib run openfl test air

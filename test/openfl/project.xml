@@ -4,7 +4,7 @@
 	<app main="TestMain" file="BindingTests"/>
 
 	<source path="src"/>
-	<source path="../src"/>
+	<source path="../../src"/>
 	
 	<haxelib name="openfl"/>
 	<haxelib name="utest"/>
