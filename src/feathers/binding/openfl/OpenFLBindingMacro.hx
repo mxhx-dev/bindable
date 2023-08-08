@@ -14,13 +14,23 @@ import haxe.macro.Expr;
 import haxe.macro.Type.ClassType;
 #end
 
+/**
+	Configures the library for use with OpenFL. Watches for property changes by
+	listening for OpenFL events.
+
+	Add the following to _project.xml_ to configure for OpenFL.
+
+	```xml
+	<haxeflag name="--macro feathers.binding.openfl.OpenFLBindingMacro.init()"/>
+	```
+**/
 class OpenFLBindingMacro {
-	public static macro function init():Void {
+	#if macro
+	public static function init():Void {
 		DataBinding.setBindingsActivationCallback(activateOpenFLBindings);
 		DataBinding.setCreatePropertyWatcherCallback(createWatcher);
 	}
 
-	#if macro
 	private static function activateOpenFLBindings(document:Expr, activate:Expr, deactivate:Expr):Expr {
 		var hasDocument = checkDocument(document);
 		if (hasDocument) {
