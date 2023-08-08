@@ -395,8 +395,13 @@ class DataBinding {
 			return simpleExpr;
 		}
 
-		var destAssignmentExpr = macro function(result:Dynamic):Void {
+		var destAssignmentExpr = macro try {
 			$destination = $source;
+		} catch (e:Dynamic) {
+			// ignore until no exception is thrown
+		}
+		var destAssignmentFunc = macro function(result:Dynamic):Void {
+			$destAssignmentExpr;
 		}
 
 		var sourceItemsSets:Array<Array<DataBindingSourceItem>> = [];
@@ -417,7 +422,7 @@ class DataBinding {
 				var fieldName = item.fieldName;
 				var eventName = item.eventName;
 				var assignWatcherExpr:Expr = null;
-				var createWatcherExpr = createWatcherCallback(eventName, expr, destAssignmentExpr);
+				var createWatcherExpr = createWatcherCallback(eventName, expr, destAssignmentFunc);
 				if (i == 0) {
 					watcherParentObject = baseExpr;
 					if (watcherParentObject == null) {
@@ -456,7 +461,7 @@ class DataBinding {
 				for (binding in bindings) {
 					binding.activate();
 				}
-				$destination = $source;
+				$destAssignmentExpr;
 			}
 			function deactivateBindings():Void {
 				for (binding in bindings) {
