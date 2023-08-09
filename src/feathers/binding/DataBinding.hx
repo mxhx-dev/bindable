@@ -282,25 +282,44 @@ class DataBinding {
 						var localClass = Context.getLocalClass();
 						if (localClass != null) {
 							var classType = localClass.get();
-							if (Lambda.exists(classType.statics.get(), field -> field.name == s && field.isFinal)) {
-								// an unqualified final static
-								simple = true;
+							var staticField = Lambda.find(classType.statics.get(), field -> field.name == s);
+							if (staticField != null) {
+								if (staticField.isFinal) {
+									// an unqualified final static
+									simple = true;
+								} else {
+									switch (staticField.kind) {
+										case FMethod(MethDynamic):
+										case FMethod(k):
+											// unqualified static method that won't change at runtime
+											simple = true;
+										default:
+									}
+								}
 							} else {
 								var field:ClassField = null;
 								var currentType = classType;
 								while (field == null && currentType != null) {
-									field = Lambda.find(currentType.fields.get(), item -> {
-										return item.name == s;
-									});
+									field = Lambda.find(currentType.fields.get(), item -> item.name == s);
 									if (currentType.superClass != null) {
 										currentType = currentType.superClass.t.get();
 									} else {
 										currentType = null;
 									}
 								}
-								if (field != null && field.isFinal) {
-									// an unqualified final field
-									simple = true;
+								if (field != null) {
+									if (field.isFinal) {
+										// an unqualified final field
+										simple = true;
+									} else {
+										switch (field.kind) {
+											case FMethod(MethDynamic):
+											case FMethod(k):
+												// unqualified method that won't change at runtime
+												simple = true;
+											default:
+										}
+									}
 								}
 							}
 						}
@@ -315,18 +334,26 @@ class DataBinding {
 							var field:ClassField = null;
 							var currentType = classType;
 							while (field == null && currentType != null) {
-								field = Lambda.find(currentType.fields.get(), item -> {
-									return item.name == fieldName;
-								});
+								field = Lambda.find(currentType.fields.get(), item -> item.name == fieldName);
 								if (currentType.superClass != null) {
 									currentType = currentType.superClass.t.get();
 								} else {
 									currentType = null;
 								}
 							}
-							if (field != null && field.isFinal) {
-								// a this-qualified final field
-								simple = true;
+							if (field != null) {
+								if (field.isFinal) {
+									// a this-qualified final field
+									simple = true;
+								} else {
+									switch (field.kind) {
+										case FMethod(MethDynamic):
+										case FMethod(k):
+											// this-qualified method that won't change at runtime
+											simple = true;
+										default:
+									}
+								}
 							}
 						}
 					default:
@@ -341,9 +368,20 @@ class DataBinding {
 								switch (defType.type) {
 									case TAnonymous(a):
 										var anonType = a.get();
-										if (Lambda.exists(anonType.fields, field -> field.name == fieldName && field.isFinal)) {
-											// a class-qualified final static
-											simple = true;
+										var field = Lambda.find(anonType.fields, field -> field.name == fieldName);
+										if (field != null) {
+											if (field.isFinal) {
+												// a class-qualified final field
+												simple = true;
+											} else {
+												switch (field.kind) {
+													case FMethod(MethDynamic):
+													case FMethod(k):
+														// class-qualified method that won't change at runtime
+														simple = true;
+													default:
+												}
+											}
 										}
 									default:
 								}

@@ -16,6 +16,10 @@ class TestDataBinding extends Test {
 
 	private static var staticStringNotBindable:String;
 
+	private static function staticMethodNoArgs():String {
+		return "staticMethod";
+	}
+
 	private final MEMBER_FINAL_STRING = "member";
 
 	private var memberStringNotBindable:String;
@@ -152,5 +156,33 @@ class TestDataBinding extends Test {
 		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
 		staticStringNotBindable = "new value";
 		Assert.equals("staticStringNotBindablestaticStringNotBindable", s);
+	}
+
+	public function testBindUnqualifiedMemberMethodNoArgsNotBindableNoFunctionCall():Void {
+		var f:() -> String = null;
+		// no compiler warning because we're not calling the method
+		DataBinding.bind(memberMethodNotBindableNoArgs, f);
+		Assert.isTrue(Reflect.compareMethods(this.memberMethodNotBindableNoArgs, f) || this.memberMethodNotBindableNoArgs == f);
+	}
+
+	public function testBindQualifiedMemberMethodNoArgsNotBindableNoFunctionCall():Void {
+		var f:() -> String = null;
+		// no compiler warning because we're not calling the method
+		DataBinding.bind(this.memberMethodNotBindableNoArgs, f);
+		Assert.isTrue(Reflect.compareMethods(this.memberMethodNotBindableNoArgs, f) || this.memberMethodNotBindableNoArgs == f);
+	}
+
+	public function testBindUnqualifiedStaticMethodNoArgsNotBindableNoFunctionCall():Void {
+		var f:() -> String = null;
+		// no compiler warning because we're not calling the method
+		DataBinding.bind(staticMethodNoArgs, f);
+		Assert.isTrue(Reflect.compareMethods(TestDataBinding.staticMethodNoArgs, f) || TestDataBinding.staticMethodNoArgs == f);
+	}
+
+	public function testBindQualifiedStaticMethodNoArgsNotBindableNoFunctionCall():Void {
+		var f:() -> String = null;
+		// no compiler warning because we're not calling the method
+		DataBinding.bind(TestDataBinding.staticMethodNoArgs, f);
+		Assert.isTrue(Reflect.compareMethods(TestDataBinding.staticMethodNoArgs, f) || TestDataBinding.staticMethodNoArgs == f);
 	}
 }
