@@ -229,7 +229,7 @@ class DataBinding {
 					pending.push(econd);
 					pending.push(eif);
 					pending.push(eelse);
-				#if (haxe_ver >= 4.1)
+				#if (haxe_ver >= 4.2)
 				case EIs(e, t):
 					pending.push(e);
 				#end
