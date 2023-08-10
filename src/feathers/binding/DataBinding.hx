@@ -106,7 +106,8 @@ class DataBinding {
 						isType = Context.getType(s) != null;
 					} catch (e:Dynamic) {};
 				}
-				var item = createSourceItem(e, baseExpr, s, baseExpr == null && (isType || s == "this"));
+				var item = createSourceItem(e, baseExpr, s, baseExpr == null
+					&& (isType || SIMPLE_ASSIGNMENT_IDENTIFIERS.indexOf(s) != -1));
 				result.push(item);
 			default:
 				Context.error('Cannot bind to source: ${ExprTools.toString(e)}', e.pos);
