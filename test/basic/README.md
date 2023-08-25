@@ -1,4 +1,4 @@
-# feathersui-binding tests
+# Bindable tests
 
 Automated tests created with [utest](https://lib.haxe.org/p/utest).
 

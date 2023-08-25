@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>	
-	<meta title="feathersui-binding Tests" package="com.feathersui.binding.tests" version="1.0.0" company="Bowler Hat LLC"/>
+	<meta title="Bindable Tests" package="dev.mxhx.bindable.tests" version="1.0.0" company="Bowler Hat LLC"/>
 	<app main="TestMain" file="BindingTests"/>
 
 	<source path="src"/>

@@ -1,4 +1,4 @@
-# feathersui-binding Change Log
+# Bindable Change Log
 
 ## 1.0.0-alpha.1 (????-??-??)
 

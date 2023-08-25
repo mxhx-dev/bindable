@@ -1,4 +1,4 @@
-# feathersui-binding haxelib
+# Bindable haxelib
 
 To package a _.zip_ file for Haxelib, run the following command:
 

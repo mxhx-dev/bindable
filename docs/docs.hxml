@@ -1,4 +1,4 @@
 -cmd haxelib run openfl build ../project.xml html5 -xml -clean -Dfind_missing_docs
 
 --next
--cmd haxelib run dox -o ../bin/api -i ../bin/html5/types.xml --include feathers.binding --toplevel-package feathers.binding --title "feathersui-binding API Reference" -theme ./feathersui-theme -D website "https://feathersui.com" -D textColor 0x292522 -D source-path "https://github.com/feathersui/feathersui-binding/tree/master/src/"
+-cmd haxelib run dox -o ../bin/api -i ../bin/html5/types.xml --include feathers.binding --toplevel-package feathers.binding --title "bindable API Reference" -theme ./feathersui-theme -D website "https://mxhx.dev" -D textColor 0x292522 -D source-path "https://github.com/mxhx-dev/bindable/tree/master/src/"

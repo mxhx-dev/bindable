@@ -1,9 +1,9 @@
 {
-  "name": "feathersui-binding",
-  "url": "https://feathersui.com/",
+  "name": "bindable",
+  "url": "https://mxhx.dev/",
   "license": "MIT",
-  "tags": ["openfl", "feathersui"],
-  "description": "Data binding for Feathers UI components",
+  "tags": ["data-binding", "mxhx", "gui", "openfl", "feathersui"],
+  "description": "Data binding for Haxe and MXHX",
   "version": "1.0.0-alpha.1",
   "classPath": "src",
   "dependencies": {

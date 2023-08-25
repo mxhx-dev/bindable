@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="DataBinding" package="com.feathersui.binding" version="1.0.0" company="Bowler Hat LLC" />
-	<app main="openfl.display.Sprite" path="bin" file="feathersui-binding" />
+	<meta title="DataBinding" package="dev.mxhx.bindable" version="1.0.0" company="Bowler Hat LLC" />
+	<app main="Main" path="bin" file="bindable" />
 	
 	<source path="src" />
+	<source path="src-dev" />
 	
 	<haxelib name="openfl" />
 
 	<haxeflag name="--macro" value="include('feathers.binding')"/>
+	<haxeflag name="--macro feathers.binding.openfl.OpenFLBindingMacro.init()"/>
 
 	<template path="templates" if="flash"/>
 

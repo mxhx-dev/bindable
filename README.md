@@ -1,26 +1,33 @@
-# Data Binding for Feathers UI
+# Bindable
 
-A data binding library for [Feathers UI](https://feathersui.com/).
+A data binding library for [Haxe](https://haxe.org/) and [MXHX](https://mxhx.dev/).
 
 ## Minimum Requirements
 
 - Haxe 4.0
-- OpenFL 8.9.7
 
 ## Installation
 
 This library is not yet available on Haxelib, so you'll need to install it from Github.
 
 ```sh
-haxelib git feathersui-binding https://github.com/feathersui/feathersui-binding.git
+haxelib git bindable https://github.com/mxhx-dev/bindable.git
 ```
 
 ## Project Configuration
 
-After installing the libraries above, add them to your OpenFL _project.xml_ file:
+## OpenFL
+
+After installing the library above, add it to your Haxe _.hxml_ file.
+
+```hxml
+--library bindable
+```
+
+For Lime and OpenFL, add it to your _project.xml_ file.
 
 ```xml
-<haxelib name="feathersui-binding" />
+<haxelib name="bindable" />
 ```
 
 ## Usage
@@ -30,7 +37,3 @@ The first argument is the source of the data. The second is the destination. The
 ```hx
 DataBinding.bind(Std.string(slider.value), label.text, this);
 ```
-
-## Documentation
-
-- [API Reference](https://api.feathersui.com/feathersui-binding/)
