@@ -1,4 +1,4 @@
-import feathers.binding.DataBinding;
+import mxhx.bindable.DataBinding;
 import openfl.display.Sprite;
 
 class Main extends Sprite {
@@ -7,6 +7,8 @@ class Main extends Sprite {
 
 	public function new() {
 		super();
+		trace(dest);
 		DataBinding.bind(src, dest, this);
+		trace(dest);
 	}
 }

@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding;
+package mxhx.bindable;
 
 #if macro
 import haxe.macro.Context;
@@ -383,7 +383,7 @@ class DataBinding {
 		// ignore eventName because unconfigured library doesn't know anything
 		// about events.
 		// to configure for OpenFL, use OpenFLBindingMacro.init()
-		return macro new feathers.binding.BasicPropertyWatcher(() -> $propertyExpr, $destValueListener);
+		return macro new mxhx.bindable.BasicPropertyWatcher(() -> $propertyExpr, $destValueListener);
 	}
 
 	/**
@@ -461,9 +461,9 @@ class DataBinding {
 			}
 			var createBinding = macro {
 				bindings.push({
-					var watchers:Array<feathers.binding.IPropertyWatcher> = [];
+					var watchers:Array<mxhx.bindable.IPropertyWatcher> = [];
 					$b{assignWatcherExprs};
-					new feathers.binding.PropertyWatcherBinding(watchers, $watcherParentObject);
+					new mxhx.bindable.PropertyWatcherBinding(watchers, $watcherParentObject);
 				});
 			};
 			createBindingExprs.push(createBinding);
@@ -471,7 +471,7 @@ class DataBinding {
 
 		var activationCode = bindingsActivationCallback(document, macro activateBindings(), macro deactivateBindings());
 		return macro {
-			var bindings:Array<feathers.binding.PropertyWatcherBinding> = [];
+			var bindings:Array<mxhx.bindable.PropertyWatcherBinding> = [];
 			$b{createBindingExprs};
 			function activateBindings():Void {
 				for (binding in bindings) {

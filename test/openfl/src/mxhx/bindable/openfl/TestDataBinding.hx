@@ -6,16 +6,16 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding.openfl;
+package mxhx.bindable.openfl;
 
-import feathers.binding.openfl.fixtures.ClassWithRegularMethod;
-import feathers.binding.openfl.fixtures.ClassWithRegularProperty;
-import feathers.binding.openfl.fixtures.ClassWithBindableDynamicProperty;
-import feathers.binding.openfl.fixtures.ClassWithBindableMethod;
-import feathers.binding.openfl.fixtures.ClassWithBindableProperty;
-import feathers.binding.openfl.fixtures.ClassWithNestedBindableProperty;
-import feathers.binding.openfl.fixtures.SubclassWithBindableMethod;
-import feathers.binding.openfl.fixtures.SubclassWithBindableProperty;
+import mxhx.bindable.openfl.fixtures.ClassWithRegularMethod;
+import mxhx.bindable.openfl.fixtures.ClassWithRegularProperty;
+import mxhx.bindable.openfl.fixtures.ClassWithBindableDynamicProperty;
+import mxhx.bindable.openfl.fixtures.ClassWithBindableMethod;
+import mxhx.bindable.openfl.fixtures.ClassWithBindableProperty;
+import mxhx.bindable.openfl.fixtures.ClassWithNestedBindableProperty;
+import mxhx.bindable.openfl.fixtures.SubclassWithBindableMethod;
+import mxhx.bindable.openfl.fixtures.SubclassWithBindableProperty;
 import openfl.Lib;
 import openfl.display.Sprite;
 import openfl.events.Event;

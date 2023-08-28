@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding;
+package mxhx.bindable;
 
 import utest.Assert;
 import utest.Test;

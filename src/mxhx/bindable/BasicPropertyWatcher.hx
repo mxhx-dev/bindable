@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding;
+package mxhx.bindable;
 
 class BasicPropertyWatcher implements IPropertyWatcher {
 	public function new(propertyGetter:() -> Dynamic, listener:(Dynamic) -> Void) {

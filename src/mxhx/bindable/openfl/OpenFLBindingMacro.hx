@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding.openfl;
+package mxhx.bindable.openfl;
 
 #if macro
 import haxe.macro.Context;
@@ -21,7 +21,7 @@ import haxe.macro.Type.ClassType;
 	Add the following to _project.xml_ to configure for OpenFL.
 
 	```xml
-	<haxeflag name="--macro feathers.binding.openfl.OpenFLBindingMacro.init()"/>
+	<haxeflag name="--macro mxhx.bindable.openfl.OpenFLBindingMacro.init()"/>
 	```
 **/
 class OpenFLBindingMacro {
@@ -109,7 +109,7 @@ class OpenFLBindingMacro {
 	}
 
 	private static function createWatcher(eventName:String, propertyExpr:Expr, destValueListener:Expr):Expr {
-		return macro new feathers.binding.openfl.PropertyWatcher($v{eventName}, () -> $propertyExpr, $destValueListener);
+		return macro new mxhx.bindable.openfl.PropertyWatcher($v{eventName}, () -> $propertyExpr, $destValueListener);
 	}
 	#end
 }

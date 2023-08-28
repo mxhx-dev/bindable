@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding;
+package mxhx.bindable;
 
 interface IPropertyWatcher {
 	var value(default, never):Dynamic;

@@ -6,10 +6,10 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding.openfl.fixtures;
+package mxhx.bindable.openfl.fixtures;
 
-class SubclassWithBindableMethod extends ClassWithBindableMethod {
-	public function new() {
-		super();
+class SubclassWithBindableProperty extends ClassWithBindableProperty {
+	public function new(?value:String) {
+		super(value);
 	}
 }

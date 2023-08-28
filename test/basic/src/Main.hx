@@ -12,8 +12,8 @@ import utest.ui.Report;
 class Main {
 	public static function main():Void {
 		var runner = new Runner();
-		runner.addCase(new feathers.binding.TestDataBinding());
-		runner.addCase(new feathers.binding.TestBasicPropertyWatcher());
+		runner.addCase(new mxhx.bindable.TestDataBinding());
+		runner.addCase(new mxhx.bindable.TestBasicPropertyWatcher());
 
 		#if (html5 && playwright)
 		// special case: see below for details

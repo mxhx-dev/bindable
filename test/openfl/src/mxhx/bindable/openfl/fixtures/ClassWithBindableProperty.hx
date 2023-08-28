@@ -6,7 +6,7 @@
 	accordance with the terms of the accompanying license agreement.
  */
 
-package feathers.binding.openfl.fixtures;
+package mxhx.bindable.openfl.fixtures;
 
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
