@@ -13,6 +13,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.ExprTools;
 import haxe.macro.Type.ClassField;
+import haxe.macro.Type.ClassType;
 #end
 
 class DataBinding {
@@ -128,12 +129,12 @@ class DataBinding {
 		var fieldIsFinal = false;
 		var fieldIsMethod = false;
 		if (baseExpr != null) {
-			var baseType = try {
+			var baseExprType = try {
 				Context.typeof(baseExpr);
 			} catch (e:Dynamic) {
 				null;
 			}
-			var field = getField(baseType, fieldName);
+			var field = getField(baseExprType, fieldName);
 			if (field != null) {
 				if (field.isFinal) {
 					// won't change, no warning required
@@ -146,21 +147,7 @@ class DataBinding {
 						fieldIsMethod = true;
 					default:
 				}
-				if (field.meta.has(":bindable")) {
-					var bindable = field.meta.extract(":bindable")[0];
-					switch (bindable.params.length) {
-						case 0:
-							item.eventName = "propertyChange";
-						case 1:
-							var param = bindable.params[0];
-							switch (param.expr) {
-								case EConst(CString(s, kind)):
-									item.eventName = s;
-								default:
-							}
-						default:
-					}
-				}
+				item.eventName = getBindableEventName(baseExprType, field);
 			}
 		}
 		if (item.eventName == null && !fieldIsFinal && !fieldIsMethod && !skipWarning) {
@@ -169,6 +156,44 @@ class DataBinding {
 			Context.warning('Data binding will not be able to detect assignments to ${fieldName}', pos);
 		}
 		return item;
+	}
+
+	private static function getBindableEventName(baseExprType:haxe.macro.Type, field:ClassField):String {
+		var classType:ClassType = null;
+		switch (baseExprType) {
+			case TInst(t, params):
+				classType = t.get();
+			default:
+		}
+		if (field.meta.has(":bindable")) {
+			var bindable = field.meta.extract(":bindable")[0];
+			switch (bindable.params.length) {
+				case 0:
+					return "propertyChange";
+				case 1:
+					var param = bindable.params[0];
+					switch (param.expr) {
+						case EConst(CString(s, kind)):
+							return s;
+						default:
+					}
+				default:
+			}
+		}
+		while (classType != null) {
+			var qname:String = classType.name;
+			if (classType.pack.length > 0) {
+				qname = classType.pack.join(".") + "." + qname;
+			}
+			if (qname != null && customBindableLookup.exists(qname)) {
+				var eventLookup = customBindableLookup.get(qname);
+				if (eventLookup != null) {
+					return eventLookup.get(field.name);
+				}
+			}
+			classType = classType.superClass != null ? classType.superClass.t.get() : null;
+		}
+		return null;
 	}
 
 	private static function collectBaseExprs(source:Expr):Array<Expr> {
@@ -371,6 +396,8 @@ class DataBinding {
 		return null;
 	}
 
+	private static var customBindableLookup:Map<String, Map<String, String>> = [];
+
 	private static var bindingsActivationCallback:(Expr, Expr, Expr) -> Expr = defaultBindingsActivationCallback;
 
 	private static function defaultBindingsActivationCallback(document:Expr, activate:Expr, deactivate:Expr):Expr {
@@ -402,6 +429,20 @@ class DataBinding {
 	**/
 	public static function setCreatePropertyWatcherCallback(callback:(String, Expr, Expr) -> Expr):Void {
 		createWatcherCallback = callback != null ? callback : defaultCreateWatcherCallback;
+	}
+
+	/**
+		Allows macros to add @:bindable metadata that doesn't exist in the source.
+
+		Note: This macro API is considered unstable and may change in future versions.
+	**/
+	public static function addBindableProperty(qname:String, fieldName:String, eventName:String):Void {
+		var eventLookup = customBindableLookup.get(qname);
+		if (eventLookup == null) {
+			eventLookup = [];
+			customBindableLookup.set(qname, eventLookup);
+		}
+		eventLookup.set(fieldName, eventName);
 	}
 	#end
 
