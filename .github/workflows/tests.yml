@@ -30,7 +30,8 @@ jobs:
         working-directory: test/openfl
         run: |
           npm ci
-          npx playwright install-with-deps
+          npx playwright install
+          npx playwright install-deps
       - name: Run OpenFL Tests
         working-directory: test/openfl
         run: |
