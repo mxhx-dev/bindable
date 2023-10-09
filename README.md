@@ -16,15 +16,15 @@ haxelib git bindable https://github.com/mxhx-dev/bindable.git
 
 ## Project Configuration
 
-## OpenFL
-
 After installing the library above, add it to your Haxe _.hxml_ file.
 
 ```hxml
 --library bindable
 ```
 
-For Lime and OpenFL, add it to your _project.xml_ file.
+### OpenFL or Lime
+
+For Lime and OpenFL, add it to your _project.xml_ file instead.
 
 ```xml
 <haxelib name="bindable" />
@@ -37,3 +37,17 @@ The first argument is the source of the data. The second is the destination. The
 ```hx
 DataBinding.bind(Std.string(slider.value), label.text, this);
 ```
+
+### C++
+
+When Haxe creates a release build for the _cpp_ target, it omits certain null checks by default. This configuration can lead to segmentation faults when accessing fields on `null` objects, instead of an exception that can be caught, like other targets.
+
+There are a couple of different ways to workaround this quirk.
+
+1. Adding the `HXCPP_CHECK_POINTER` define to your project's configuration to enable the missing `null` checks.
+
+2. If using Haxe 4.3 or newer, using the _safe navigation operator_ to manually handle `null` objects.
+
+   ```haxe
+   DataBinding.bind(obj?.prop, dest, this);
+   ```
