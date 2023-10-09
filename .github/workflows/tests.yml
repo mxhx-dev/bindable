@@ -57,6 +57,16 @@ jobs:
         run: |
           haxe test.hxml --neko bin/test.n
           neko bin/test.n
+      - name: Run Basic C++ Tests without HXCPP_CHECK_POINTER
+        working-directory: test/basic
+        run: |
+          haxe test.hxml --cpp bin/test
+          ./bin/test/Main
+      - name: Run Basic C++ Tests with HXCPP_CHECK_POINTER
+        working-directory: test/basic
+        run: |
+          haxe test.hxml --cpp bin/test_check_pointer -D HXCPP_CHECK_POINTER
+          ./bin/test_check_pointer/Main
   test-hashlink:
     strategy:
       matrix:
