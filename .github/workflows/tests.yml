@@ -48,6 +48,7 @@ jobs:
       - name: Set up Haxelib dependencies
         run: |
           haxelib install utest --quiet
+          haxelib install hxcpp --quiet
           haxelib dev bindable $GITHUB_WORKSPACE
       - name: Run Basic Interpreter Tests
         working-directory: test/basic
