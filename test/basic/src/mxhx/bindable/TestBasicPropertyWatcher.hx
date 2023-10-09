@@ -131,8 +131,7 @@ class TestBasicPropertyWatcher extends Test {
 		Assert.equals(2, bindToMe);
 	}
 
-	#if !interp
-	// Haxe interpreter doesn't throw exception for member access on null
+	#if (!cpp || HXCPP_CHECK_POINTER)
 	public function testMissingFieldException():Void {
 		final originalText = "original";
 		final newText = "new";
@@ -143,8 +142,32 @@ class TestBasicPropertyWatcher extends Test {
 		Assert.equals(originalText, bindToMe);
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
+		#if interp
+		// Haxe interpreter doesn't seem to throw exception when bindableDynamicProp is null
+		Assert.isNull(bindToMe);
+		#else
 		// binding should not change value if exception is thrown
 		Assert.equals(originalText, bindToMe);
+		#end
+		instance.bindableDynamicProp = {hello: newText};
+		watcher.updateParentObject(instance);
+		watcher.notifyListener();
+		Assert.equals(newText, bindToMe);
+	}
+	#end
+
+	#if (haxe_ver >= 4.3)
+	public function testMissingFieldWithSafeNavigationOperator():Void {
+		final originalText = "original";
+		final newText = "new";
+		var bindToMe = originalText;
+		var instance = new ClassWithBindableDynamicProperty();
+		watcher = new BasicPropertyWatcher(() -> instance?.bindableDynamicProp?.hello, result -> bindToMe = result);
+		// binding should not propagate until after parent object is updated
+		Assert.equals(originalText, bindToMe);
+		watcher.updateParentObject(instance);
+		watcher.notifyListener();
+		Assert.isNull(bindToMe);
 		instance.bindableDynamicProp = {hello: newText};
 		watcher.updateParentObject(instance);
 		watcher.notifyListener();
