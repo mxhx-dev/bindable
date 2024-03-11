@@ -51,7 +51,7 @@ jobs:
         run: |
           haxelib install utest --quiet
           haxelib install hxcpp --quiet
-          haxelib dev bindable $GITHUB_WORKSPACE
+          haxelib dev bindable ${{ github.workspace }}
       - name: Run Basic Interpreter Tests
         working-directory: test/basic
         run: haxe test.hxml --interp
@@ -85,7 +85,7 @@ jobs:
           haxelib install lime --quiet
           haxelib install openfl --quiet
           haxelib install utest --quiet
-          haxelib dev bindable $GITHUB_WORKSPACE
+          haxelib dev bindable ${{ github.workspace }}
       - name: Run OpenFL Tests
         working-directory: test/openfl
         run: haxelib run openfl test hl
@@ -104,7 +104,7 @@ jobs:
           haxelib install lime --quiet
           haxelib install openfl --quiet
           haxelib install utest --quiet
-          haxelib dev bindable $GITHUB_WORKSPACE
+          haxelib dev bindable ${{ github.workspace }}
       - name: Run OpenFL Tests
         working-directory: test/openfl
         run: haxelib run openfl test neko
