@@ -10,8 +10,8 @@ jobs:
   haxelib:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: bindable-haxelib
           path: |
@@ -25,8 +25,8 @@ jobs:
   api:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@v1
+      - uses: actions/checkout@v6
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: 4.0.5
       - name: Set up Haxelib dependencies
@@ -38,7 +38,7 @@ jobs:
       - name: Build API reference
         working-directory: docs
         run: haxe docs.hxml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bindable-docs
           path: bin/api/
@@ -56,16 +56,16 @@ jobs:
   test-html5:
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.2]
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@v1
+      - uses: actions/checkout@v6
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: ${{ matrix.haxe-version }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "16"
+          node-version: 22.x
       - name: Set up Haxelib dependencies
         run: |
           haxelib install lime --quiet
@@ -86,11 +86,11 @@ jobs:
   test-basic:
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.2]
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@v1
+      - uses: actions/checkout@v6
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: ${{ matrix.haxe-version }}
       - name: Set up Haxelib dependencies
@@ -119,13 +119,11 @@ jobs:
   test-hashlink:
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.2]
-    # AL init fails on both windows and ubuntu
-    #macos-14 is arm64, which setup-haxe doesn't support yet
-    runs-on: macos-13
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@v1
+      - uses: actions/checkout@v6
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: ${{ matrix.haxe-version }}
       - name: Set up Haxelib dependencies
@@ -140,11 +138,11 @@ jobs:
   test-neko:
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.2]
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@v1
+      - uses: actions/checkout@v6
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: ${{ matrix.haxe-version }}
       - name: Set up Haxelib dependencies
@@ -159,15 +157,15 @@ jobs:
   test-air:
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.2]
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: joshtynjala/setup-adobe-air-action@v2
         with:
           air-version: "33.1"
           accept-license: true
-      - uses: krdlab/setup-haxe@v1
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: ${{ matrix.haxe-version }}
       - name: Set up Haxelib dependencies
