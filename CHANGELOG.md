@@ -1,5 +1,5 @@
 # Bindable Change Log
 
-## 1.0.0-alpha.1 (????-??-??)
+## 1.0.0 (2026-03-20)
 
 - Initial release

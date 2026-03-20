@@ -4,7 +4,7 @@
   "license": "MIT",
   "tags": ["data-binding", "mxhx", "gui", "openfl", "feathersui"],
   "description": "Data binding for Haxe and MXHX",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "classPath": "src",
   "dependencies": {
     "openfl": ""
